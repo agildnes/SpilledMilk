@@ -3,10 +3,13 @@ A201 - Group Project
 Version: 1.0
 Log (Please Log all changes):
 Tuesday November 5th - Primary game loop and input validation created - Axel
+Thursday November 7th - Save data/loading save file implementation (Subject to change as the game becomes more developed) - Charlene
 
 */
 
 #include <iostream>
+#include <fstream> 
+#include <string> 
 using namespace std;
 
 void invalid_input() // Error function
@@ -33,7 +36,7 @@ void pet_menu() // This is where you feed, water, and play with the pet. It also
     } 
 }
 
-void minigame_menu() // This is where you earn money. Possibly some real time little minigame, but just some basic math can be placeholder.
+void minigame_menu() // This is where you earn money. Possibly some real-time little minigame, but just some basic math can be placeholder.
 {
     while (true)
     {
@@ -45,9 +48,34 @@ void minigame_menu() // This is where you earn money. Possibly some real time li
 int main()
 {
     bool exit_game = false;
-    //        ---Implement saving pet data from file later---
+    string name; // Pet Name
     int coins = 20; // Default Money
-    int hunger = 100, thirst = 100, happyness = 100; // Default Pet Values
+    int hunger = 100, thirst = 100, happiness = 100; // Default Pet Values
+
+    // Try to load data from the file
+    ifstream inFile("pet_data.txt");
+    if (inFile) {
+        getline(inFile, name);
+        inFile >> hunger >> thirst >> happiness; // Takes these values if found
+        inFile.close();
+        cout << "Pet data loaded: " << name << endl; 
+    } else {
+        cout << "No pet data found. Create a new pet? (y/n): "; 
+        char choice; // Local variable for saving
+        cin >> choice;
+        cin.ignore(); // Clear newline character from input buffer
+        if (choice == 'y' || choice == 'Y') {
+            cout << "Enter pet name: ";
+            getline(cin, name);
+        } else if (choice == 'n' || choice == 'N') {
+            cout << "Exiting..." << endl; 
+            return 0; 
+        } else {
+            cout << "Invalid choice. Please enter 'Y' or 'N'. " << endl; 
+            return 0;
+        }
+    }
+
 
     while (true) // Main Game Loop
     {
@@ -91,6 +119,17 @@ int main()
 
         if (exit_game)
         {
+            ofstream outFile ("pet_data.txt");
+            if (!outFile) {
+                cout << "Error opening save file! Please check file permissions or disk space. " << endl; 
+                break; 
+            }
+            outFile << name << endl; 
+            outFile << hunger << " " << thirst << " " << happiness << endl; // Save stats
+            
+            outFile.close(); // Close after writing
+            
+            cout << "Pet data saved successfully." << endl; 
             cout << "---Quitting Game---" << endl;
             break;
         }

@@ -2,14 +2,18 @@
 A201 - Group Project
 Version: 1.0
 Log (Please Log all changes):
-Tuesday November 5th - Primary game loop and input validation created - Axel
-Thursday November 7th - Save data/loading save file implementation (Subject to change as the game becomes more developed) - Charlene
+Tuesday, November 5th - Primary game loop and input validation created - Axel
+Thursday, November 7th - Save data/loading save file implementation (Subject to change as the game becomes more developed) - Charlene
+Sunday, November 10th = Set up basic minigame menu (Assuming there will be at least a few mini-games, therefore multiple options) - Charlene
 
 */
 
 #include <iostream>
 #include <fstream> 
 #include <string> 
+// #include <cstdlib> (Might use for minigames)
+// #include <ctime>  (Might use for minigames)
+
 using namespace std;
 
 void invalid_input() // Error function
@@ -36,11 +40,42 @@ void pet_menu() // This is where you feed, water, and play with the pet. It also
     } 
 }
 
+
 void minigame_menu() // This is where you earn money. Possibly some real-time little minigame, but just some basic math can be placeholder.
 {
-    while (true)
-    {
-        /* code */
+   while (true) {
+        // Display the menu
+        cout << "=== Mini Games ===" << endl;
+        cout << "1) Game Name 1" << endl;
+        cout << "2) Game Name 2" << endl;
+        cout << "3) Game Name 3" << endl;
+        cout << "4) Exit" << endl;
+
+        int choice;
+        cin >> choice; 
+
+        switch (choice) {
+            case 1: {
+                cout << "Welcome to Game Name 1!" << endl; // Possible game idea: Blackjack 
+                break; 
+            }
+            case 2: {
+                cout << "Welcome to Game Name 2!" << endl; // Possible game idea: Dice Rolls
+                break;
+            }
+            case 3: {
+                cout << "Welcome to Game Name 3!" << endl; // Possible game idea: Daily Spin 
+                break;
+            }
+            case 4: {
+                cout << "Exiting Mini Games... Goodbye!" << endl;
+                return; 
+            }
+            default: {
+                cout << "Invalid choice. Please try again!" << endl;
+                break; 
+            }
+        }
     }
 }
 

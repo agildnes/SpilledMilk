@@ -4,7 +4,8 @@ Version: 1.0
 Log (Please Log all changes):
 Tuesday, November 5th - Primary game loop and input validation created - Axel
 Thursday, November 7th - Save data/loading save file implementation (Subject to change as the game becomes more developed) - Charlene
-Sunday, November 10th = Set up basic minigame menu (Assuming there will be at least a few mini-games, therefore multiple options) - Charlene
+Sunday, November 10th - Set up basic minigame menu (Assuming there will be at least a few mini-games, therefore multiple options) - Charlene
+Tuesday November 12th - Set up the shop menu, the inventory system still isn't up yet, so it isn't very useful. - Axel
 
 */
 
@@ -28,7 +29,48 @@ void shop_menu() // This is where you spend money on items for your pet.
 {
     while (true)
     {
-        /* code */
+        int user_input;
+        bool leave_shop = false;
+
+        cout << "----------------[ Shop Menu ]-----------------" << endl;
+        cout << "1) Water - 3 coins" << endl;
+        cout << "2) Food - 5 coins" << endl;
+        cout << "3) Toy - 10 coins" << endl;
+        cout << "4) Exit Menu" << endl;
+
+        while (true) // Input Validation
+        {
+            cout << "Enter Input: ";
+            cin >> user_input;
+
+            if (cin.fail() || !(cin.peek() == '\n') || user_input > 4 || user_input < 1)
+            {
+                invalid_input();
+            }else
+                break;
+        }
+        
+        switch (user_input)
+        {
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                leave_shop = true;
+                break;
+            
+            default:
+                break;
+        }
+
+        if (leave_shop)
+        {
+            break;
+        }
+        
     }
 }
 
@@ -41,7 +83,7 @@ void pet_menu() // This is where you feed, water, and play with the pet. It also
 }
 
 
-void minigame_menu() // This is where you earn money. Possibly some real-time little minigame, but just some basic math can be placeholder.
+void minigame_menu() 
 {
    while (true) {
         // Display the menu
@@ -85,7 +127,8 @@ int main()
     bool exit_game = false;
     string name; // Pet Name
     int coins = 20; // Default Money
-    int hunger = 100, thirst = 100, happiness = 100; // Default Pet Values
+    int hunger = 100, thirst = 100, happiness = 100; // Default Pet Values 
+    // decay - (thirst 3x) (hunger 2x) (happiness 1x) exact difference in value is subject to change, however they should not decay at the same rate
 
     // Try to load data from the file
     ifstream inFile("pet_data.txt");
@@ -171,6 +214,9 @@ int main()
         
     }
 
+
+    return 0;
+}
 
     return 0;
 }

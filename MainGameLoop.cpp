@@ -25,7 +25,7 @@ void invalid_input() // Error function
 }
 
 
-void shop_menu() // This is where you spend money on items for your pet.
+void shop_menu(int &coins) // This is where you spend money on items for your pet.
 {
     while (true)
     {
@@ -74,7 +74,7 @@ void shop_menu() // This is where you spend money on items for your pet.
     }
 }
 
-void pet_menu() // This is where you feed, water, and play with the pet. It also serves as an inventory.
+void pet_menu(int &hunger, int &thirst, int &happiness) // This is where you feed, water, and play with the pet. It also serves as an inventory.
 {
     while (true)
     {
@@ -87,7 +87,7 @@ void minigame_menu()
 {
    while (true) {
         // Display the menu
-        cout << "=== Mini Games ===" << endl;
+        cout << "-------------[ Mini Games ]---------------" << endl;
         cout << "1) Game Name 1" << endl;
         cout << "2) Game Name 2" << endl;
         cout << "3) Game Name 3" << endl;
@@ -158,7 +158,7 @@ int main()
     while (true) // Main Game Loop
     {
         int user_input;
-        cout << "------------------------------------------" << endl;
+        cout << "----------------[ Main Menu ]-----------------" << endl;
         cout << "1) Shop Menu" << endl;
         cout << "2) Pet Menu" << endl;
         cout << "3) MiniGame Menu" << endl;
@@ -179,10 +179,10 @@ int main()
         switch (user_input) // Send User to Proper Menu
         {
         case 1:
-            shop_menu();
+            shop_menu(coins);
             break;
         case 2:
-            pet_menu();
+            pet_menu(hunger, thirst, happiness);
             break;
         case 3:
             minigame_menu();
@@ -214,9 +214,6 @@ int main()
         
     }
 
-
-    return 0;
-}
 
     return 0;
 }

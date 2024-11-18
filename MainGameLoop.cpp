@@ -6,6 +6,7 @@ Tuesday, November 5th - Primary game loop and input validation created - Axel
 Thursday, November 7th - Save data/loading save file implementation (Subject to change as the game becomes more developed) - Charlene
 Sunday, November 10th - Set up basic minigame menu (Assuming there will be at least a few mini-games, therefore multiple options) - Charlene
 Tuesday November 12th - Set up the shop menu, the inventory system still isn't up yet, so it isn't very useful. - Axel
+Sunday November 17th - Set up basic inventory, but I expect this to be modified again in the future once game is more developed - Charlene
 
 */
 
@@ -14,6 +15,7 @@ Tuesday November 12th - Set up the shop menu, the inventory system still isn't u
 #include <string> 
 // #include <cstdlib> (Might use for minigames)
 // #include <ctime>  (Might use for minigames)
+// #include <limits> (For inventory)
 
 using namespace std;
 
@@ -78,7 +80,33 @@ void pet_menu(int &hunger, int &thirst, int &happiness) // This is where you fee
 {
     while (true)
     {
-        /* code */
+        /*
+
+        // Inventory Size
+        const int MAX_INVENTORY_SIZE = 5; 
+        string inventory[MAX_INVENTORY_SIZE];
+        int itemCount = 0; 
+
+        //Determine if inventory is full 
+        if (itemCount >= MAX_INVENTORY_SIZE) {
+            cout << "Inventory full!" << endl; 
+            return; 
+        }
+
+        //Determine if inventory is empty
+        if (itemCount == 0) {
+            cout << "Your inventory is empty." << endl; 
+            return; 
+        }
+
+        // Iterate through inventory 
+        cout << "Your inventory: "; 
+        for (int i = 0; i < itemCount; ++i) {
+            cout << inventory[i] << " "; 
+        }
+        cout << endl; 
+        
+        */
     } 
 }
 
@@ -130,6 +158,7 @@ int main()
     int hunger = 100, thirst = 100, happiness = 100; // Default Pet Values 
     // decay - (thirst 3x) (hunger 2x) (happiness 1x) exact difference in value is subject to change, however they should not decay at the same rate
 
+    // cout << "\033[H\033[J"; (Will put here for now, but this is used to clear screen)
     // Try to load data from the file
     ifstream inFile("pet_data.txt");
     if (inFile) {
@@ -163,6 +192,7 @@ int main()
         cout << "2) Pet Menu" << endl;
         cout << "3) MiniGame Menu" << endl;
         cout << "4) Exit Game" << endl;
+        
 
         while (true) // Input Validation
         {

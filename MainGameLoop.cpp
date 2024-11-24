@@ -7,17 +7,27 @@ Thursday, November 7th - Save data/loading save file implementation (Subject to 
 Sunday, November 10th - Set up basic minigame menu (Assuming there will be at least a few mini-games, therefore multiple options) - Charlene
 Tuesday November 12th - Set up the shop menu, the inventory system still isn't up yet, so it isn't very useful. - Axel
 Sunday November 17th - Set up basic inventory, but I expect this to be modified again in the future once game is more developed - Charlene
-
+Sunday November 24th - Clear screen/terminal function, ASCII art, shop menu inventory/switch case handles coins and inventory, inventory saved to file implemented - Charlene
 */
 
 #include <iostream>
 #include <fstream> 
 #include <string> 
-// #include <cstdlib> (Might use for minigames)
-// #include <ctime>  (Might use for minigames)
-// #include <limits> (For inventory)
+#include <cstdlib> // ("cls" and "clear")
+#include <ctime>  // (Might use for minigames)
+#include <limits> // (For inventory)
 
 using namespace std;
+
+void clearScreen() 
+{
+// Clear screen based on platform
+    #ifdef _WIN32
+        system("cls"); // Clear screen on Windows
+    #else
+        system("clear"); // Clear screen on Linux/macOS
+    #endif
+}
 
 void invalid_input() // Error function
 {
@@ -26,8 +36,28 @@ void invalid_input() // Error function
     cout << "Invalid Input. Please enter a valid number." << endl;
 }
 
+void pet_Avatar_Happy() 
+{
+    cout << R"(
+    /\_/\ ♥
+    >^,^<
+     / \
+    (___)_/" 
+    )" << endl; 
+}
 
-void shop_menu(int &coins) // This is where you spend money on items for your pet.
+void pet_Avatar_Sad() 
+{
+    cout << R"(
+    /\_/\ 
+    >=,=<
+     / \
+    (___)_/" 
+    )" << endl; 
+}
+
+
+void shop_menu(int &coins, string inventory[], int &itemCount) // This is where you spend money on items for your pet.
 {
     while (true)
     {
@@ -52,14 +82,50 @@ void shop_menu(int &coins) // This is where you spend money on items for your pe
                 break;
         }
         
-        switch (user_input)
+      switch (user_input)
         {
-            case 1:
+            case 1: // Water
+                if (coins >= 3) {
+                    if (itemCount < MAX_INVENTORY_SIZE) {
+                    coins -=3;
+                    inventory[itemCount++] = "Water"; 
+                    cout << "You purchased Water! Remaining coins: " << coins << endl; 
+                    } else {
+                    cout << "Inventory full!" << endl; 
+                    }
+                } else {
+                cout << "Not enough coins!" << endl; 
+                }
                 break;
-            case 2:
+            
+            case 2: // Food
+                if (coins >= 5) {
+                    if (itemCount < MAX_INVENTORY_SIZE) {
+                    coins -=5;
+                    inventory[itemCount++] = "Food";
+                    cout << "You purchased Food! Remaining coins: " << coins << endl; 
+                     } else {
+                    cout << "Inventory full!" << endl; 
+                    }
+                } else {
+                cout << "Not enough coins!" << endl; 
+                }
                 break;
-            case 3:
+            
+            case 3: // Toy
+                if (coins >= 10) {
+                    if (itemCount < MAX_INVENTORY_SIZE) {
+                    coins -= 10;
+                    inventory[itemCount++] = "Toy";
+                    cout << "You purchased a Toy! Remaining coins: " << coins << endl; 
+                    } else {
+                    cout << "Inventory full!" << endl; 
+                    }
+                } else {
+                cout << "Not enough coins!" << endl; 
+                }
                 break;
+            
             case 4:
                 leave_shop = true;
                 break;
@@ -76,7 +142,7 @@ void shop_menu(int &coins) // This is where you spend money on items for your pe
     }
 }
 
-void pet_menu(int &hunger, int &thirst, int &happiness) // This is where you feed, water, and play with the pet. It also serves as an inventory.
+void pet_menu(int &hunger, int &thirst, int &happiness, string inventory[MAX_INVENTORY_SIZE]) // This is where you feed, water, and play with the pet. It also serves as an inventory.
 {
     while (true)
     {
@@ -155,10 +221,13 @@ int main()
     bool exit_game = false;
     string name; // Pet Name
     int coins = 20; // Default Money
+    int inventory[5];
+    int itemCount = 0; 
     int hunger = 100, thirst = 100, happiness = 100; // Default Pet Values 
     // decay - (thirst 3x) (hunger 2x) (happiness 1x) exact difference in value is subject to change, however they should not decay at the same rate
 
-    // cout << "\033[H\033[J"; (Will put here for now, but this is used to clear screen)
+    pet_Avatar_Happy(); 
+    
     // Try to load data from the file
     ifstream inFile("pet_data.txt");
     if (inFile) {
@@ -185,8 +254,10 @@ int main()
 
 
     while (true) // Main Game Loop
-    {
+    {    clearScreen(); 
+        
         int user_input;
+     
         cout << "----------------[ Main Menu ]-----------------" << endl;
         cout << "1) Shop Menu" << endl;
         cout << "2) Pet Menu" << endl;
@@ -209,10 +280,10 @@ int main()
         switch (user_input) // Send User to Proper Menu
         {
         case 1:
-            shop_menu(coins);
+            shop_menu(coins, inventory, itemCount);
             break;
         case 2:
-            pet_menu(hunger, thirst, happiness);
+            pet_menu(hunger, thirst, happiness, inventory, itemCount);
             break;
         case 3:
             minigame_menu();
@@ -234,7 +305,11 @@ int main()
             }
             outFile << name << endl; 
             outFile << hunger << " " << thirst << " " << happiness << endl; // Save stats
-            
+
+            outFile << itemCount << endl; // Inventory saving
+            for (int i = 0; i < itemCount; ++i) 
+                outFile << inventory[i] << endl; 
+            }
             outFile.close(); // Close after writing
             
             cout << "Pet data saved successfully." << endl; 

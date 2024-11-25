@@ -170,7 +170,12 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
                 }
 
                 coins += refund; 
-                cout << item << "sold! You received: " << refund; 
+                if (refund > 1) {
+                    cout << item << " sold! You received " << refund << " coins." << endl;
+                } else {
+                    cout << item << " sold! You received " << refund << " coin." << endl;
+                }
+
 
                 for (int i = item_Sell; i < itemCount - 1; ++i) {
                     inventory[i] = inventory[i+1]; // Shift items to left

@@ -8,6 +8,8 @@ Sunday, November 10th - Set up basic minigame menu (Assuming there will be at le
 Tuesday November 12th - Set up the shop menu, the inventory system still isn't up yet, so it isn't very useful. - Axel
 Sunday November 17th - Set up basic inventory, but I expect this to be modified again in the future once game is more developed - Charlene
 Sunday November 24th - Clear screen/terminal function, ASCII art, shop menu inventory/switch case handles coins and inventory, inventory saved to file implemented - Charlene
+Sunday November 24th - Fixed ASCII art, added pet_Stats_Decay function to keep track of needs decay, added pet_Stats function to display stats, implemented inventory in shop menu for a refund 
+(so users can delete items), created global const variable for inventory, added a condition to show happy pet art or sad pet art based on needs - Charlene
 */
 
 #include <iostream>
@@ -18,6 +20,8 @@ Sunday November 24th - Clear screen/terminal function, ASCII art, shop menu inve
 #include <limits> // (For inventory)
 
 using namespace std;
+
+const int MAX_INVENTORY_SIZE = 5; 
 
 void clearScreen() 
 {
@@ -38,23 +42,31 @@ void invalid_input() // Error function
 
 void pet_Avatar_Happy() 
 {
-    cout << R"(
-    /\_/\ ♥
-    >^,^<
-     / \
-    (___)_/" 
-    )" << endl; 
+    cout << "/\\_/\\ ♥\n"
+         << ">^W^<\n"
+         << " / \\\n"
+         << "(___)_/\n" << endl;
 }
 
 void pet_Avatar_Sad() 
 {
-    cout << R"(
-    /\_/\ 
-    >=,=<
-     / \
-    (___)_/" 
-    )" << endl; 
+    cout << "/\\_/\\ ☹\n"
+         << ">=A=<\n"
+         << " / \\\n"
+         << "(___)_/\n" << endl;
 }
+
+void pet_Stats_Decay(int &hunger, int &thirst, int &happiness) {
+
+    // Implement stats decay
+    
+    if (hunger < 0) hunger = 0; // Hunger can't go past zero
+    if (thirst < 0) thirst = 0; // Thirst can't go past zero
+    if (happiness < 0) happiness = 0; // Happiness can't go past zero
+}
+
+void pet_Stats(int hunger, int thirst, int happiness) {
+cout << "Hunger: " << hunger << " | Thirst: " << thirst << " | Happiness: " << happiness << endl; }
 
 
 void shop_menu(int &coins, string inventory[], int &itemCount) // This is where you spend money on items for your pet.
@@ -68,7 +80,8 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
         cout << "1) Water - 3 coins" << endl;
         cout << "2) Food - 5 coins" << endl;
         cout << "3) Toy - 10 coins" << endl;
-        cout << "4) Exit Menu" << endl;
+        cout << "4) Sell item" << endl;
+        cout << "5) Exit Menu" << endl; 
 
         while (true) // Input Validation
         {
@@ -78,12 +91,12 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
             if (cin.fail() || !(cin.peek() == '\n') || user_input > 4 || user_input < 1)
             {
                 invalid_input();
-            }else
+            } else {
                 break;
         }
+     }
         
-      switch (user_input)
-        {
+      switch (user_input) {
             case 1: // Water
                 if (coins >= 3) {
                     if (itemCount < MAX_INVENTORY_SIZE) {
@@ -125,8 +138,48 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
                 cout << "Not enough coins!" << endl; 
                 }
                 break;
-            
-            case 4:
+
+            case 4: // Sell an item and get a refund
+              if (itemCount == 0) {
+                  cout << "You have no items to sell!" << endl; 
+              } else {
+                  cout << "Your inventory: " << endl; 
+                      for (int i = 0; i < itemCount; ++i) {
+                          cout << i + 1 << ") " << inventory[i] << endl; }
+                  
+                int item_Sell; 
+                cout << "Enter the number of the item you want to sell: " << endl;
+                cin >> item_Sell; 
+
+                // Input validation
+                if (cin.fail() || !(cin.peek() == '\n') || item_Sell > itemCount) {
+                    invalid_input(); 
+                    break;
+                }
+                  
+                item_Sell--; 
+                string item = inventory[item_Sell]; 
+
+                int refund = 0; 
+                if (item == "Water") {
+                    refund = 3/2; // User gets half coins
+                } else if (item == "Food") { // User gets half coins
+                    refund = 5/2; 
+                } else if (item == "Toy") { // User gets half coins
+                    refund = 10/2;
+                }
+
+                coins += refund; 
+                cout << item << "sold! You received: << refund; 
+
+                for (int i = item_Sell; i < itemCount - 1; ++i) {
+                    inventory[i] = inventory[i+1]; // Shift items to left
+                }
+                itemCount--; 
+              }
+              break; 
+          
+            case 5:
                 leave_shop = true;
                 break;
             
@@ -142,14 +195,11 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
     }
 }
 
-void pet_menu(int &hunger, int &thirst, int &happiness, string inventory[MAX_INVENTORY_SIZE]) // This is where you feed, water, and play with the pet. It also serves as an inventory.
+void pet_menu(int &hunger, int &thirst, int &happiness, string inventory[MAX_INVENTORY_SIZE], int &itemCount) // This is where you feed, water, and play with the pet. It also serves as an inventory.
 {
     while (true)
     {
-        /*
-
         // Inventory Size
-        const int MAX_INVENTORY_SIZE = 5; 
         string inventory[MAX_INVENTORY_SIZE];
         int itemCount = 0; 
 
@@ -172,7 +222,6 @@ void pet_menu(int &hunger, int &thirst, int &happiness, string inventory[MAX_INV
         }
         cout << endl; 
         
-        */
     } 
 }
 
@@ -221,12 +270,11 @@ int main()
     bool exit_game = false;
     string name; // Pet Name
     int coins = 20; // Default Money
-    int inventory[5];
+    string inventory[MAX_INVENTORY_SIZE];
     int itemCount = 0; 
     int hunger = 100, thirst = 100, happiness = 100; // Default Pet Values 
     // decay - (thirst 3x) (hunger 2x) (happiness 1x) exact difference in value is subject to change, however they should not decay at the same rate
 
-    pet_Avatar_Happy(); 
     
     // Try to load data from the file
     ifstream inFile("pet_data.txt");
@@ -252,73 +300,83 @@ int main()
         }
     }
 
-
     while (true) // Main Game Loop
-    {    clearScreen(); 
-        
-        int user_input;
-     
-        cout << "----------------[ Main Menu ]-----------------" << endl;
-        cout << "1) Shop Menu" << endl;
-        cout << "2) Pet Menu" << endl;
-        cout << "3) MiniGame Menu" << endl;
-        cout << "4) Exit Game" << endl;
-        
-
-        while (true) // Input Validation
         {
-            cout << "Enter Input: ";
-            cin >> user_input;
-
-            if (cin.fail() || !(cin.peek() == '\n') || user_input > 4 || user_input < 1)
-            {
-                invalid_input();
-            }else
-                break;
-        }
-
-        switch (user_input) // Send User to Proper Menu
-        {
-        case 1:
-            shop_menu(coins, inventory, itemCount);
-            break;
-        case 2:
-            pet_menu(hunger, thirst, happiness, inventory, itemCount);
-            break;
-        case 3:
-            minigame_menu();
-            break;
-        case 4:
-            exit_game = true;
-            break;
-        
-        default:
-            break;
-        }
-
-        if (exit_game)
-        {
-            ofstream outFile ("pet_data.txt");
-            if (!outFile) {
-                cout << "Error opening save file! Please check file permissions or disk space. " << endl; 
-                break; 
+            clearScreen(); 
+           
+            // Display happy or sad art depending on needs
+            if (hunger >= 50 || thirst >= 50 || happiness >= 50) {
+                pet_Avatar_Happy(); 
+            } else {
+                pet_Avatar_Sad(); 
             }
-            outFile << name << endl; 
-            outFile << hunger << " " << thirst << " " << happiness << endl; // Save stats
 
-            outFile << itemCount << endl; // Inventory saving
-            for (int i = 0; i < itemCount; ++i) 
-                outFile << inventory[i] << endl; 
-            }
-            outFile.close(); // Close after writing
+            pet_Stats_Decay(hunger, thirst, happiness);
+            pet_Stats(hunger, thirst, happiness); 
             
-            cout << "Pet data saved successfully." << endl; 
-            cout << "---Quitting Game---" << endl;
-            break;
-        }
+            
+            int user_input;
+     
+            cout << "----------------[ Main Menu ]-----------------" << endl;
+            cout << "1) Shop Menu" << endl;
+            cout << "2) Pet Menu" << endl;
+            cout << "3) Minigames Menu" << endl;
+            cout << "4) Exit Game" << endl;
         
-    }
-
-
+    
+            while (true) // Input Validation
+            {
+                cout << "Enter Input: ";
+                cin >> user_input;
+    
+                if (cin.fail() || !(cin.peek() == '\n') || user_input > 4 || user_input < 1)
+                {
+                    invalid_input();
+                } else
+                    break;
+            }
+    
+            switch (user_input) // Send User to Proper Menu
+            {
+            case 1:
+                shop_menu(coins, inventory, itemCount);
+                break;
+            case 2:
+                pet_menu(hunger, thirst, happiness, inventory, itemCount);
+                break;
+            case 3:
+                minigame_menu();
+                break;
+            case 4:
+                exit_game = true;
+                break;
+            
+            default:
+                break;
+            }
+    
+            if (exit_game) {
+                ofstream outFile ("pet_data.txt");
+                if (!outFile) {
+                    cout << "Error opening save file! Please check file permissions or disk space. " << endl; 
+                    break; 
+                }
+                
+                outFile << name << endl; 
+                outFile << hunger << " " << thirst << " " << happiness << endl; // Save stats
+    
+                outFile << itemCount << endl; // Inventory saving
+                for (int i = 0; i < itemCount; ++i) {
+                    outFile << inventory[i] << endl; 
+                }
+                outFile.close(); // Close after writing
+                
+                cout << "Pet data saved successfully." << endl; 
+                cout << "---Quitting Game---" << endl;
+                break;
+            }
+        
+        }
+    
     return 0;
 }

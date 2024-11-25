@@ -170,7 +170,7 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
                 }
 
                 coins += refund; 
-                cout << item << "sold! You received: << refund; 
+                cout << item << "sold! You received: " << refund; 
 
                 for (int i = item_Sell; i < itemCount - 1; ++i) {
                     inventory[i] = inventory[i+1]; // Shift items to left
@@ -199,19 +199,20 @@ void pet_menu(int &hunger, int &thirst, int &happiness, string inventory[MAX_INV
 {
     while (true)
     {
+        /*
         // Inventory Size
         string inventory[MAX_INVENTORY_SIZE];
         int itemCount = 0; 
 
         //Determine if inventory is full 
         if (itemCount >= MAX_INVENTORY_SIZE) {
-            cout << "Inventory full!" << endl; 
+            cout << "Inventory full! " << endl; 
             return; 
         }
 
         //Determine if inventory is empty
         if (itemCount == 0) {
-            cout << "Your inventory is empty." << endl; 
+            cout << "Your inventory is empty. " << endl; 
             return; 
         }
 
@@ -221,7 +222,7 @@ void pet_menu(int &hunger, int &thirst, int &happiness, string inventory[MAX_INV
             cout << inventory[i] << " "; 
         }
         cout << endl; 
-        
+        */
     } 
 }
 

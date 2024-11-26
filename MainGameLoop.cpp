@@ -12,6 +12,7 @@ Sunday November 24th - Fixed ASCII art, added pet_Stats_Decay function to keep t
 (so users can delete items), created global const variable for inventory, added a condition to show happy pet art or sad pet art based on needs - Charlene
 Monday November 25th - Add screen clear for apple
 Tuesday November 26th - Added incomplete exploration minigame
+Tuesday November 26th - Fixed Shop Menu exit, reworked Shop Menu to be more user friendly, other minor QOL changes. - Axel
 */
 
 #include <iostream>
@@ -60,9 +61,12 @@ void pet_Avatar_Sad()
          << "(___)_/\n" << endl;
 }
 
-void pet_Stats_Decay(int &hunger, int &thirst, int &happiness) {
+void pet_Stats_Decay(int &hunger, int &thirst, int &happiness) // this needs to be signaled by another program if we want constant change
+{
 
-    // Implement stats decay
+    thirst = thirst - 3; 
+    hunger = hunger - 2; 
+    happiness = happiness - 1;
     
     if (hunger < 0) hunger = 0; // Hunger can't go past zero
     if (thirst < 0) thirst = 0; // Thirst can't go past zero
@@ -81,6 +85,10 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
         bool leave_shop = false;
 
         cout << "----------------[ Shop Menu ]-----------------" << endl;
+        if (coins >= 10)
+            cout << "                [ Coins: " << coins << " ]" << endl;
+        else
+            cout << "                [ Coins: " << coins << "  ]" << endl;
         cout << "1) Water - 3 coins" << endl;
         cout << "2) Food - 5 coins" << endl;
         cout << "3) Toy - 10 coins" << endl;
@@ -92,7 +100,7 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
             cout << "Enter Input: ";
             cin >> user_input;
 
-            if (cin.fail() || !(cin.peek() == '\n') || user_input > 4 || user_input < 1)
+            if (cin.fail() || !(cin.peek() == '\n') || user_input > 5 || user_input < 1)
             {
                 invalid_input();
             } else {
@@ -106,7 +114,7 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
                     if (itemCount < MAX_INVENTORY_SIZE) {
                     coins -=3;
                     inventory[itemCount++] = "Water"; 
-                    cout << "You purchased Water! Remaining coins: " << coins << endl; 
+                    cout << "You purchased Water! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << endl; 
                     } else {
                     cout << "Inventory full!" << endl; 
                     }
@@ -120,7 +128,7 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
                     if (itemCount < MAX_INVENTORY_SIZE) {
                     coins -=5;
                     inventory[itemCount++] = "Food";
-                    cout << "You purchased Food! Remaining coins: " << coins << endl; 
+                    cout << "You purchased Food! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << endl; 
                      } else {
                     cout << "Inventory full!" << endl; 
                     }
@@ -134,7 +142,7 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
                     if (itemCount < MAX_INVENTORY_SIZE) {
                     coins -= 10;
                     inventory[itemCount++] = "Toy";
-                    cout << "You purchased a Toy! Remaining coins: " << coins << endl; 
+                    cout << "You purchased a Toy! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << endl; 
                     } else {
                     cout << "Inventory full!" << endl; 
                     }
@@ -166,11 +174,11 @@ void shop_menu(int &coins, string inventory[], int &itemCount) // This is where 
 
                 int refund = 0; 
                 if (item == "Water") {
-                    refund = 3/2; // User gets half coins
-                } else if (item == "Food") { // User gets half coins
-                    refund = 5/2; 
-                } else if (item == "Toy") { // User gets half coins
-                    refund = 10/2;
+                    refund = 2; // User gets half coins (round up) 
+                } else if (item == "Food") { // User gets half coins (round up)
+                    refund = 3; 
+                } else if (item == "Toy") { // User gets half coins (round up)
+                    refund = 5;
                 }
 
                 coins += refund; 
@@ -595,7 +603,8 @@ void minigame_menu()
 
         switch (choice) {
             case 1: {
-                cout << "Welcome to Game Name 1!" << endl; // Possible game idea: Blackjack 
+                explorationGame *fish = new explorationGame;
+                delete fish;
                 break; 
             }
             case 2: {
@@ -665,7 +674,7 @@ int main()
                 pet_Avatar_Sad(); 
             }
 
-            pet_Stats_Decay(hunger, thirst, happiness);
+            //pet_Stats_Decay(hunger, thirst, happiness);
             pet_Stats(hunger, thirst, happiness); 
             
             

@@ -10,6 +10,8 @@ Sunday November 17th - Set up basic inventory, but I expect this to be modified 
 Sunday November 24th - Clear screen/terminal function, ASCII art, shop menu inventory/switch case handles coins and inventory, inventory saved to file implemented - Charlene
 Sunday November 24th - Fixed ASCII art, added pet_Stats_Decay function to keep track of needs decay, added pet_Stats function to display stats, implemented inventory in shop menu for a refund 
 (so users can delete items), created global const variable for inventory, added a condition to show happy pet art or sad pet art based on needs - Charlene
+Monday November 25th - Add screen clear for apple
+Tuesday November 26th - Added incomplete exploration minigame
 */
 
 #include <iostream>
@@ -26,11 +28,13 @@ const int MAX_INVENTORY_SIZE = 5;
 void clearScreen() 
 {
 // Clear screen based on platform
-    #ifdef _WIN32
-        system("cls"); // Clear screen on Windows
-    #else
-        system("clear"); // Clear screen on Linux/macOS
-    #endif
+#if defined _WIN32
+	system("cls");
+#elif defined (__LINUX__) || defined(__gnu_linux__) || defined(__linux__)
+	system("clear");
+#elif defined (__APPLE__)
+	system("clear");
+#endif
 }
 
 void invalid_input() // Error function
@@ -231,6 +235,350 @@ void pet_menu(int &hunger, int &thirst, int &happiness, string inventory[MAX_INV
     } 
 }
 
+//Exploration minigame!
+class explorationGame 
+{
+public:
+    int numCoins = 0;
+    
+    //Displays the whole field. Currently used for testing.
+    void printField() 
+    {
+        for (int iy = 0; iy < ysize; iy++)
+        {
+            for (int ix = 0; ix < xsize; ix++)
+            {
+                cout << field[ix][iy] << ' ';
+            }
+            cout << '\n';
+        }
+    }
+
+    // Constructor. When you make the class, this runs automatically.
+    explorationGame() 
+    {
+        srand(time(0)); // Randomize game
+        setField();
+        exploreLoop();
+    }
+private: 
+    // Map size in tiles.
+    static const int xsize = 50;
+    static const int ysize = 50;
+    static const int visionRadius = 5;
+    enum eventKey { EXIT = 0, BORDER = 1, COIN = 2, ENCOUNTER = 3 };
+    int energy = 50;
+
+    char field[xsize][ysize];
+
+    int playerCoords[2] = { xsize / 2, ysize / 2 };
+
+    // Each function ending with gen adds a layer to the map.
+    void rivergen()
+    {
+        ;
+    }
+
+    void treegen()
+    {
+        int mnum = rand() % 6 + 24; // Generates random amount of foliage
+        for (int im = 0; im <= mnum; im++)
+        {
+            int mx = rand() % 50;
+            int my = rand() % 50;
+            int msize = rand() % 7 + 2; // Foliage radius
+            while (((mx - msize <= 25) && (mx + msize >= 25)) && ((my - msize <= 25) && (my + msize >= 25)))
+            {
+                mx = rand() % 50;
+                my = rand() % 50;
+            }
+            field[mx][my] = ';';
+            for (int i = 0; i <= msize; i++) // Fills foliage
+            {
+                if (mx + i < 50 && mx + i >= 0) // Right side
+                {
+                    for (int iy = my; (iy >= 0 && iy <= 49) && iy - my <= msize - i; iy++)
+                    {
+                        field[mx + i][iy] = ';';
+                    }
+                    for (int iy = my; (iy >= 0 && iy <= 49) && my - iy <= msize - i; iy--)
+                    {
+                        field[mx + i][iy] = ';';
+                    }
+                }
+                if (mx - i < 50 && mx - i >= 0) // Left side
+                {
+                    for (int iy = my; (iy >= 0 && iy <= 49) && iy - my <= msize - i; iy++)
+                    {
+                        field[mx - i][iy] = ';';
+                    }
+                    for (int iy = my; (iy >= 0 && iy <= 49) && my - iy <= msize - i; iy--)
+                    {
+                        field[mx - i][iy] = ';';
+                    }
+                }
+            }
+        }
+    }
+
+    void mountaingen()
+    {
+        int mnum = rand() % 6 + 4; // Generates random number of mountains
+        for (int im = 0; im <= mnum; im++)
+        {
+            int mx = rand() % 50;
+            int my = rand() % 50;
+            int msize = rand() % 4 + 4; // Mountain radius
+            while (((mx - msize <= 25) && (mx + msize >= 25)) && ((my - msize <= 25) && (my + msize >= 25)))
+            {
+                mx = rand() % 50;
+                my = rand() % 50;
+            }
+            field[mx][my] = 'M';
+            for (int i = 0; i <= msize; i++) // Fills mountains
+            {
+                if (mx + i < 50 && mx + i >= 0) // Right side
+                {
+                    for (int iy = my; (iy >= 0 && iy <=49) && iy - my <= msize - i; iy++)
+                    {
+                        field[mx + i][iy] = 'M';
+                    }
+                    for (int iy = my; (iy >= 0 && iy <= 49) && my - iy <= msize - i; iy--)
+                    {
+                        field[mx + i][iy] = 'M';
+                    }
+                }
+                if (mx - i < 50 && mx - i >= 0) // Left side
+                {
+                    for (int iy = my; (iy >= 0 && iy <= 49) && iy - my <= msize - i; iy++)
+                    {
+                        field[mx - i][iy] = 'M';
+                    }
+                    for (int iy = my; (iy >= 0 && iy <= 49) && my - iy <= msize - i; iy--)
+                    {
+                        field[mx - i][iy] = 'M';
+                    }
+                }
+            }
+        }
+    }
+
+    void locationgen()
+    {
+        for (int iy = 0; iy < 50; iy++)
+        {
+            for (int ix = 0; ix < 50; ix++)
+            {
+                if (field[ix][iy] == 'M')
+                    continue;
+                else if (field[ix][iy] == '.')
+                {
+                    if (rand() % 60 == 1) // Coin
+                    {
+                        field[ix][iy] = '@';
+                    }
+                    else if (rand() % 60 == 1) // Encounter
+                    {
+                        field[ix][iy] = 'E';
+                    }
+                }
+                else if (field[ix][iy] == ';')
+                {
+                    if (rand() % 60 == 1) // Coin
+                    {
+                        field[ix][iy] = '@';
+                    }
+                    else if (rand() % 30 == 1) // Encounter
+                    {
+                        field[ix][iy] = 'E';
+                    }
+                }
+                else if (field[ix][iy] == 'S')
+                {
+                    if (rand() % 30 == 1) // Coin
+                    {
+                        field[ix][iy] = '@';
+                    }
+                    else if (rand() % 60 == 1) // Encounter
+                    {
+                        field[ix][iy] = 'E';
+                    }
+                }
+            }
+        }
+    }
+   
+    void setField()
+    {
+        for (int iy = 0; iy < ysize; iy++) //Initializes board with flat ground
+        {
+            for (int ix = 0; ix < xsize; ix++)
+            {
+                field[ix][iy] = '.';
+            }
+        }
+        treegen();
+
+        mountaingen(); // Places mountain tiles
+
+        rivergen(); // Places river tiles
+
+        locationgen(); // Places coins & encounters
+
+        for (int i = 0; i < 50; i++) // Sets the map border
+        {
+            field[i][0] = 'X';
+        }
+        for (int i = 0; i < 50; i++)
+        {
+            field[0][i] = 'X';
+        }
+        for (int i = 0; i < 50; i++)
+        {
+            field[49][i] = 'X';
+        }
+        for (int i = 0; i < 50; i++)
+        {
+            field[i][49] = 'X';
+        }
+    }
+
+    void encounter()
+    {
+        ;
+    }
+
+    // Only prints player vision
+    void printVision()
+    {
+        for (int iy = playerCoords[1] - visionRadius; iy <= playerCoords[1] + visionRadius; iy++)
+        {
+            if (iy)
+                cout << '\n';
+            if (iy < 0 || iy >= 50)
+            {
+                for (int i = 0; i <= 10; i++)
+                    cout << "  ";
+                continue;
+            }
+            else
+            {
+                for (int ix = playerCoords[0] - visionRadius; ix <= playerCoords[0] + visionRadius; ix++)
+                {
+                    if (iy < 0 || iy >= 50)
+                    {
+                        cout << "  ";
+                    }
+                    else if (ix == playerCoords[0] && iy == playerCoords[1])
+                        cout << 'O ';
+                    else
+                    {
+                        cout << field[ix][iy] << " ";
+                    }
+                }
+            }
+        }
+        cout << endl;
+    }
+
+    int getInput()
+    {
+        while (1)
+        {
+            char tile = ' '; // Type of tile.
+            int pos[2] = { 0, 0 }; // Change in player position.
+            char input = getchar();
+            if (input == '!')
+            {
+                return EXIT;
+            }
+            if (input == 'w' || input == 'W')
+            {
+                tile = field[playerCoords[0]][playerCoords[1] - 1];
+                pos[1] = -1;
+            }
+            if (input == 'a' || input == 'A')
+            {
+                tile = field[playerCoords[0] - 1][playerCoords[1]];
+                pos[0] = -1;
+            }
+            if (input == 's' || input == 'S')
+            {
+                tile = field[playerCoords[0]][playerCoords[1] + 1];
+                pos[1] = 1;
+            }
+            if (input == 'd' || input == 'D')
+            {
+                tile = field[playerCoords[0] + 1][playerCoords[1]];
+                pos[0] = 1;
+            }
+
+            if (tile == 'X') // Border
+                return BORDER;
+            // Apply change in player position.
+            playerCoords[0] += pos[0];
+            playerCoords[1] += pos[1];
+            if (tile == '@') // Coin
+            {
+                field[playerCoords[0]][playerCoords[1]] = '.';
+                return COIN;
+            }
+            if (tile == 'E') // Encounter
+            {
+                field[playerCoords[0]][playerCoords[1]] = '.';
+                return ENCOUNTER;
+            }
+            if (tile == '.') // Grass
+                energy -= 1;
+            if (tile == ';') // Foliage
+                energy -= 2;
+            if (tile == 'S') // River
+                energy -= 3;
+            
+        }
+    }
+    // Game loop
+    int exploreLoop() 
+    {
+        int tempCoins;
+        // You can think of it as the max amount of time in the day, if you like.
+        int escape = 0;
+        while (escape < 300)
+        {
+            clearScreen();
+            printVision();
+            switch (getInput())
+            {
+            case EXIT:
+                return 0;
+            case BORDER:
+                clearScreen();
+                printVision();
+                cout << "You shouldn't stray too far from home.";
+                break;
+            case COIN:
+                tempCoins = rand() % 3 + 1;
+                numCoins += tempCoins;
+                clearScreen();
+                printVision();
+                cout << "\nYou found " << tempCoins << " coins!" << endl;
+                break;
+            case ENCOUNTER:
+                clearScreen();
+                printVision();
+                encounter();
+                break;
+            default:
+                break;
+            }
+
+
+        }
+        return 0;
+    }
+    
+};
+// --- END OF EXPLORATION MINIGAME ---
 
 void minigame_menu() 
 {

@@ -13,13 +13,14 @@ Sunday November 24th - Fixed ASCII art, added pet_Stats_Decay function to keep t
 Monday November 25th - Add screen clear for apple
 Tuesday November 26th - Added incomplete exploration minigame
 Tuesday November 26th - Fixed Shop Menu exit, reworked Shop Menu to be more user friendly, other minor QOL changes. - Axel
+Wednesday November 27th - Added stats decay function (decay every 5 seconds) - Charlene (I hope I didn't break it LOL)
 */
 
 #include <iostream>
 #include <fstream> 
 #include <string> 
 #include <cstdlib> // ("cls" and "clear")
-#include <ctime>  // (Might use for minigames)
+#include <ctime> 
 #include <limits> // (For inventory)
 
 using namespace std;
@@ -61,16 +62,23 @@ void pet_Avatar_Sad()
          << "(___)_/\n" << endl;
 }
 
-void pet_Stats_Decay(int &hunger, int &thirst, int &happiness) // this needs to be signaled by another program if we want constant change
+void pet_Stats_Decay(int &hunger, int &thirst, int &happiness, time_t &decayTime) // this needs to be signaled by another program if we want constant change
 {
+ time_t currentTime = time(NULL); // Current time; 
+ double secondsElapsed = difftime(currentTime, decayTime); // Time difference
 
+// Every 5 seconds, there is a decay in stats (we can change this if needed)
+if (secondsElapsed >= 5) {
     thirst = thirst - 3; 
     hunger = hunger - 2; 
     happiness = happiness - 1;
     
-    if (hunger < 0) hunger = 0; // Hunger can't go past zero
-    if (thirst < 0) thirst = 0; // Thirst can't go past zero
-    if (happiness < 0) happiness = 0; // Happiness can't go past zero
+	if (hunger < 0) hunger = 0; // Hunger can't go past zero
+	if (thirst < 0) thirst = 0; // Thirst can't go past zero
+	if (happiness < 0) happiness = 0; // Happiness can't go past zero
+	
+	decayTime = currentTime; 
+	}
 }
 
 void pet_Stats(int hunger, int thirst, int happiness) {
@@ -636,6 +644,7 @@ int main()
     string inventory[MAX_INVENTORY_SIZE];
     int itemCount = 0; 
     int hunger = 100, thirst = 100, happiness = 100; // Default Pet Values 
+    time_t decayTime = time(NULL); // Initialize time 
     // decay - (thirst 3x) (hunger 2x) (happiness 1x) exact difference in value is subject to change, however they should not decay at the same rate
 
     
@@ -666,7 +675,10 @@ int main()
     while (true) // Main Game Loop
         {
             clearScreen(); 
-           
+
+	    // Call time decay function
+	    pet_Stats_Decay(int &hunger, int &thirst, int &happiness, time_t &decayTime)
+
             // Display happy or sad art depending on needs
             if (hunger >= 50 || thirst >= 50 || happiness >= 50) {
                 pet_Avatar_Happy(); 
@@ -674,9 +686,8 @@ int main()
                 pet_Avatar_Sad(); 
             }
 
-            //pet_Stats_Decay(hunger, thirst, happiness);
+            // Display pet stats
             pet_Stats(hunger, thirst, happiness); 
-            
             
             int user_input;
      

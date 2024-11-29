@@ -14,6 +14,7 @@ Monday November 25th - Add screen clear for apple
 Tuesday November 26th - Added incomplete exploration minigame
 Tuesday November 26th - Fixed Shop Menu exit, reworked Shop Menu to be more user friendly, other minor QOL changes. - Axel
 Wednesday November 27th - Added stats decay function (decay every 5 seconds) - Charlene (I hope I didn't break it LOL)
+Friday November 29th - Fixed game, resolved some errors
 */
 
 #include <iostream>
@@ -22,6 +23,7 @@ Wednesday November 27th - Added stats decay function (decay every 5 seconds) - C
 #include <cstdlib> // ("cls" and "clear")
 #include <ctime> 
 #include <limits> // (For inventory)
+#include <iomanip>
 
 using namespace std;
 
@@ -252,13 +254,13 @@ void pet_menu(int &hunger, int &thirst, int &happiness, string inventory[MAX_INV
 }
 
 //Exploration minigame!
-class explorationGame 
+class explorationGame
 {
 public:
     int numCoins = 0;
-    
+
     //Displays the whole field. Currently used for testing.
-    void printField() 
+    void printField()
     {
         for (int iy = 0; iy < ysize; iy++)
         {
@@ -270,26 +272,49 @@ public:
         }
     }
 
-    // Constructor. When you make the class, this runs automatically.
-    explorationGame() 
+    //Used for text formatting. Runs through the list of encounters.
+    void testEncounters()
     {
-        srand(time(0)); // Randomize game
-        setField();
-        exploreLoop();
+        int tempvar[5] = { 1, 3, 5, 10, 15 };
+        for (int i : tempvar)
+            encounter(i);
     }
-private: 
+
+    void runGame()
+    {
+        srand(time(0));
+        setField();
+        defaultValues();
+        if (exploreLoop())
+            cout << "Tired from a day of adventure, you return home.\n";
+
+    }
+
+private:
     // Map size in tiles.
     static const int xsize = 50;
     static const int ysize = 50;
-    static const int visionRadius = 5;
-    enum eventKey { EXIT = 0, BORDER = 1, COIN = 2, ENCOUNTER = 3 };
-    int energy = 50;
+
+    static const int visionRadius = 7;
+
+    enum eventKey { EXIT = 0, BORDER = 1, COIN = 2, ENCOUNTER = 3, TILE = 4, MOUNTAIN = 5 };
+
+    int energy = 50; // Starting energy.
 
     char field[xsize][ysize];
 
     int playerCoords[2] = { xsize / 2, ysize / 2 };
 
-    // Each function ending with gen adds a layer to the map.
+    // Resets variables to base values.
+    void defaultValues()
+    {
+        numCoins = 0;
+        energy = 50;
+        playerCoords[0] = xsize / 2;
+        playerCoords[1] = ysize / 2;
+    }
+
+    // Map generation functions.
     void rivergen()
     {
         ;
@@ -300,35 +325,35 @@ private:
         int mnum = rand() % 6 + 24; // Generates random amount of foliage
         for (int im = 0; im <= mnum; im++)
         {
-            int mx = rand() % 50;
-            int my = rand() % 50;
+            int mx = rand() % xsize;
+            int my = rand() % ysize;
             int msize = rand() % 7 + 2; // Foliage radius
-            while (((mx - msize <= 25) && (mx + msize >= 25)) && ((my - msize <= 25) && (my + msize >= 25)))
+            while (((mx - msize <= xsize / 2) && (mx + msize >= xsize / 2)) && ((my - msize <= ysize / 2) && (my + msize >= ysize / 2)))
             {
-                mx = rand() % 50;
-                my = rand() % 50;
+                mx = rand() % xsize;
+                my = rand() % xsize;
             }
             field[mx][my] = ';';
             for (int i = 0; i <= msize; i++) // Fills foliage
             {
-                if (mx + i < 50 && mx + i >= 0) // Right side
+                if (mx + i < xsize && mx + i >= 0) // Right side
                 {
-                    for (int iy = my; (iy >= 0 && iy <= 49) && iy - my <= msize - i; iy++)
+                    for (int iy = my; (iy >= 0 && iy < ysize) && iy - my <= msize - i; iy++)
                     {
                         field[mx + i][iy] = ';';
                     }
-                    for (int iy = my; (iy >= 0 && iy <= 49) && my - iy <= msize - i; iy--)
+                    for (int iy = my; (iy >= 0 && iy < ysize) && my - iy <= msize - i; iy--)
                     {
                         field[mx + i][iy] = ';';
                     }
                 }
-                if (mx - i < 50 && mx - i >= 0) // Left side
+                if (mx - i < xsize && mx - i >= 0) // Left side
                 {
-                    for (int iy = my; (iy >= 0 && iy <= 49) && iy - my <= msize - i; iy++)
+                    for (int iy = my; (iy >= 0 && iy < ysize) && iy - my <= msize - i; iy++)
                     {
                         field[mx - i][iy] = ';';
                     }
-                    for (int iy = my; (iy >= 0 && iy <= 49) && my - iy <= msize - i; iy--)
+                    for (int iy = my; (iy >= 0 && iy < ysize) && my - iy <= msize - i; iy--)
                     {
                         field[mx - i][iy] = ';';
                     }
@@ -342,35 +367,35 @@ private:
         int mnum = rand() % 6 + 4; // Generates random number of mountains
         for (int im = 0; im <= mnum; im++)
         {
-            int mx = rand() % 50;
-            int my = rand() % 50;
+            int mx = rand() % xsize;
+            int my = rand() % ysize;
             int msize = rand() % 4 + 4; // Mountain radius
-            while (((mx - msize <= 25) && (mx + msize >= 25)) && ((my - msize <= 25) && (my + msize >= 25)))
+            while (((mx - msize <= xsize / 2) && (mx + msize >= xsize / 2)) && ((my - msize <= ysize / 2) && (my + msize >= ysize / 2)))
             {
-                mx = rand() % 50;
-                my = rand() % 50;
+                mx = rand() % xsize;
+                my = rand() % ysize;
             }
             field[mx][my] = 'M';
             for (int i = 0; i <= msize; i++) // Fills mountains
             {
-                if (mx + i < 50 && mx + i >= 0) // Right side
+                if (mx + i < xsize && mx + i >= 0) // Right side
                 {
-                    for (int iy = my; (iy >= 0 && iy <=49) && iy - my <= msize - i; iy++)
+                    for (int iy = my; (iy >= 0 && iy < ysize) && iy - my <= msize - i; iy++)
                     {
                         field[mx + i][iy] = 'M';
                     }
-                    for (int iy = my; (iy >= 0 && iy <= 49) && my - iy <= msize - i; iy--)
+                    for (int iy = my; (iy >= 0 && iy < ysize) && my - iy <= msize - i; iy--)
                     {
                         field[mx + i][iy] = 'M';
                     }
                 }
-                if (mx - i < 50 && mx - i >= 0) // Left side
+                if (mx - i < xsize && mx - i >= 0) // Left side
                 {
-                    for (int iy = my; (iy >= 0 && iy <= 49) && iy - my <= msize - i; iy++)
+                    for (int iy = my; (iy >= 0 && iy < ysize) && iy - my <= msize - i; iy++)
                     {
                         field[mx - i][iy] = 'M';
                     }
-                    for (int iy = my; (iy >= 0 && iy <= 49) && my - iy <= msize - i; iy--)
+                    for (int iy = my; (iy >= 0 && iy < ysize) && my - iy <= msize - i; iy--)
                     {
                         field[mx - i][iy] = 'M';
                     }
@@ -381,9 +406,9 @@ private:
 
     void locationgen()
     {
-        for (int iy = 0; iy < 50; iy++)
+        for (int iy = 0; iy < ysize; iy++)
         {
-            for (int ix = 0; ix < 50; ix++)
+            for (int ix = 0; ix < xsize; ix++)
             {
                 if (field[ix][iy] == 'M')
                     continue;
@@ -423,7 +448,7 @@ private:
             }
         }
     }
-   
+
     void setField()
     {
         for (int iy = 0; iy < ysize; iy++) //Initializes board with flat ground
@@ -441,60 +466,286 @@ private:
 
         locationgen(); // Places coins & encounters
 
-        for (int i = 0; i < 50; i++) // Sets the map border
+        for (int i = 0; i < xsize; i++) // Sets the map border
         {
             field[i][0] = 'X';
         }
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < ysize; i++)
         {
             field[0][i] = 'X';
         }
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < ysize; i++)
         {
-            field[49][i] = 'X';
+            field[xsize - 1][i] = 'X';
         }
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < xsize; i++)
         {
-            field[i][49] = 'X';
+            field[i][ysize - 1] = 'X';
         }
     }
 
-    void encounter()
+    // Encounter generator.
+    bool encounter(int var = rand() % 100 + 1)
     {
-        ;
+        int tempCoins;
+        // May the best if statement win!
+        if (var <= 1)
+        {
+            cout << "You fall into an inconveniently placed pitfall trap."
+                << "\n After a while you manage to climb out, leaving you"
+                << "\ntired from whe whole ordeal.\n\n-20 energy";
+            energy -= 20;
+            return 0;
+        }
+        if (var <= 3)
+        {
+            cout << "You are chased up a tree by wild animals! They eventually"
+                << "\nleave you alone, but you feel drained from the encounter.\n\n-15 energy";
+            energy -= 15;
+            return 0;
+        }
+        if (var <= 5)
+        {
+            cout << "You encounter someone during your travels who drags you"
+                << "\ninto a long-winded conversation about uninteresting things."
+                << "\nYou finally escape, but not unscathed.\n\n-10 energy";
+            energy -= 10;
+            return 0;
+        }
+        if (var <= 10)
+        {
+            cout << "You follow a long path that leads nowhere. Disappointed,"
+                << "\nyou walk back up the path with nothing to show for it\n\n-5 energy";
+            energy -= 5;
+            return 0;
+        }
+        if (var <= 15)
+        {
+            cout << "You hear a sound in the distance. You go to investigate,"
+                << "\nand find someone stuck in a pit. You help them out."
+                << "\nAs thanks, they give you a coin.\n\n-5 energy\n+1 coin";
+            energy -= 5;
+            numCoins++;
+            return 0;
+        }
+        if (var <= 20)
+        {
+            cout << "You stop by a small stream and take a drink of water."
+                << "\nYou feel reinvigorated.\n\n+15 energy";
+            energy += 15;
+            return 0;
+        }
+        if (var <= 25)
+        {
+            cout << "You stop by a small stream and take a drink of water."
+                << "\nYou see something glittering in the stream."
+                << "After closer inspection, it turns out to be a coin!\n\n+10 energy\n+1 coin";
+            energy += 10;
+            numCoins++;
+            return 0;
+        }
+        if (var <= 30)
+        {
+            tempCoins = rand() % 7 + 3;
+            cout << "You find a buried chest! inside is a bunch ofjunk, but"
+                << "\nafter some digging around, you collect a few coins.\n\n+"
+                << tempCoins << " coins";
+            numCoins += tempCoins;
+            return 0;
+        }
+        if (var <= 35)
+        {
+            tempCoins = rand() % 5 + 2;
+            cout << "You feel air rush by and something brush up against you."
+                << "\nYou look around, but see nothing. Your pockets feel ligher\n\n-"
+                << tempCoins << " coins";
+            numCoins -= tempCoins;
+            if (numCoins < 0)
+                numCoins = 0;
+            return 0;
+        }
+        if (var <= 36)
+        {
+            tempCoins = rand() % 4 + 3;
+            cout << "A rich person sees you wandering and assumes you're homeless."
+                << "\nOut of pity, they give you a couple coins. You're not sure how"
+                << "\nto feel about this interaction, but at least you got coins.\n\n+"
+                << tempCoins << " coins";
+            numCoins += tempCoins;
+            return 0;
+        }
+        if (var <= 40)
+        {
+            tempCoins = rand() % 4 + 3;
+            cout << "You find some coins lying on the ground. Nice!"
+                << "\n\n+" << tempCoins << " coins";
+            numCoins += tempCoins;
+            return 0;
+        }
+        if (var <= 41)
+        {
+            cout << "A saudi prince offers you a million coins in exchange for"
+                << "\nan initial investment. Knowing they must be telling the"
+                << "\ntruth, you give them some of your coins. You wonder when"
+                << "\nthey'll contact you.\n\n-10 coins";
+            numCoins -= 10;
+            if (numCoins < 0)
+                numCoins = 0;
+            return 0;
+        }
+        if (var <= 42)
+        {
+            cout << "You're confronted by a bandit looking to steal your coins."
+                << "\nLuckily, they trip on a rock and fall over, unconscious."
+                << "\nYou hurry away.";
+            return 0;
+        }
+        if (var <= 50)
+        {
+            cout << "You find some berry bushes, and decide to eat some berries."
+                << "\nThey're very tasty, and you feel invigorated!\n\n+10 energy";
+            energy += 10;
+            return 0;
+        }
+        if (var <= 60)
+        {
+            cout << "After reaching the crest of a hill, you stop to admire"
+                << "\nthe view. You're filled with determination!\n\n+10 energy";
+            energy += 10;
+            return 0;
+        }
+        if (var <= 61)
+        {
+            cout << "Despite the sunny weather, you're struck by lightning."
+                << "\nNaturally, this energizes you!\n\n+50 energy";
+            energy += 50;
+            return 0;
+        }
+        if (var <= 65)
+        {
+            cout << "You find a discarded piece of candy. Surely it's edible..."
+                << "\n\n+10 energy";
+            energy += 10;
+            return 0;
+        }
+        if (var <= 66)
+        {
+            cout << "You find a discarded piece of candy. Surely it's edible..."
+                << "\nYou bite into it, but it turns out to be a coin. Ow."
+                << "\n\n-1 energy\n+1 coin";
+            energy--;
+            numCoins++;
+            return 0;
+        }
+        if (var <= 67)
+        {
+            cout << "You take a sip from your trusty vault 13 canteen.\n\n+15 energy";
+            energy += 15;
+            return 0;
+        }
+        if (var <= 68)
+        {
+            cout << "Someone offers you a cake. Naturally, you accept."
+                << "\nTurns out it wasn't a lie.\n\n+30 energy";
+            energy += 30;
+            return 0;
+        }
+        if (var <= 75)
+        {
+            cout << "You decide to listen to some music, and your favorite"
+                << "\nsong comes on. It makes the journey easier.\n\n+15 energy";
+            energy += 15;
+            return 0;
+        }
+        if (var <= 80)
+        {
+            cout << "You find a wishing well, and toss a coin in. You feel hopeful."
+                << "\n\n+ 10 energy\n-1 coin";
+            energy += 10;
+            numCoins--;
+            if (numCoins < 0)
+                numCoins = 0;
+            return 0;
+        }
+        if (var <= 85)
+        {
+            cout << "You encounter a very short man on the road with a pack-laden pony"
+                << "\nat his side. He quite adamantly offers you coins, as his pony is"
+                << "\ntoo tired to carry them. You graciously accept.\n\n+10 coins";
+            numCoins += 10;
+            return 0;
+        }
+        if (var <= 90)
+        {
+            cout << "A goose walks across your path and lays a golden egg."
+                << "You're sure you could fetch a good price for it.\n\n+10 coins";
+            numCoins += 10;
+            return 0;
+        }
+        if (var <= 95)
+        {
+            tempCoins = rand() % 11 + 5;
+            cout << "You approach a group of people watching a magician perform"
+                << "\ntricks, and join the crowd. For the final trick, the"
+                << "\nmagician makes coins rain from the sky. That was fun!"
+                << "\n\n+15 energy\n+" << tempCoins << " coins";
+            energy += 15;
+            numCoins += tempCoins;
+            return 0;
+        }
+        if (var <= 99)
+        {
+            cout << "A man offers you an energy drink, saying it'll make you run"
+                << "\nfaster and jump higher. Despite your sudden and inexplicable"
+                << "\nurge to throw it on the ground, you drink it.\n\n+15 energy";
+            energy += 15;
+            return 0;
+        }
+        if (var <= 100)
+        {
+            cout << "A little something for playing :)\n\n+50 energy\n+20 coins";
+            energy += 50;
+            numCoins += 20;
+            return 0;
+        }
+
+
+
+
     }
 
-    // Only prints player vision
+    // Only prints player vision.
     void printVision()
     {
+        cout << "/-------------------------------\\\n";
         for (int iy = playerCoords[1] - visionRadius; iy <= playerCoords[1] + visionRadius; iy++)
         {
-            if (iy)
-                cout << '\n';
-            if (iy < 0 || iy >= 50)
+            cout << "| ";
+            if (iy < 0 || iy >= ysize)
             {
-                for (int i = 0; i <= 10; i++)
-                    cout << "  ";
+                cout << setw(30) << "" << "|\n";
                 continue;
             }
             else
             {
                 for (int ix = playerCoords[0] - visionRadius; ix <= playerCoords[0] + visionRadius; ix++)
                 {
-                    if (iy < 0 || iy >= 50)
+                    if (ix < 0 || ix >= xsize)
                     {
                         cout << "  ";
                     }
                     else if (ix == playerCoords[0] && iy == playerCoords[1])
-                        cout << 'O ';
+                        cout << "O ";
                     else
                     {
                         cout << field[ix][iy] << " ";
                     }
                 }
+                cout << "|\n";
             }
         }
-        cout << endl;
+        cout << "\\-------------------------------/\n" << endl;
+        cout << "Energy: " << energy << "     Coins: " << numCoins << "\n" << endl;
     }
 
     int getInput()
@@ -531,38 +782,51 @@ private:
 
             if (tile == 'X') // Border
                 return BORDER;
+            if (tile == 'M') // Mountain
+                return MOUNTAIN;
+
             // Apply change in player position.
             playerCoords[0] += pos[0];
             playerCoords[1] += pos[1];
-            if (tile == '@') // Coin
+            if (tile == '@') // Coin. No energy loss because you're happy you got money! It's intentional.
             {
                 field[playerCoords[0]][playerCoords[1]] = '.';
                 return COIN;
             }
-            if (tile == 'E') // Encounter
+            if (tile == 'E') // Encounter. Once again, no energy loss because I'm nice :)
             {
                 field[playerCoords[0]][playerCoords[1]] = '.';
                 return ENCOUNTER;
             }
             if (tile == '.') // Grass
+            {
                 energy -= 1;
+                return TILE;
+            }
             if (tile == ';') // Foliage
+            {
                 energy -= 2;
+                return TILE;
+            }
             if (tile == 'S') // River
+            {
                 energy -= 3;
-            
+                return TILE;
+            }
+
+            return 6;
         }
     }
     // Game loop
-    int exploreLoop() 
+    int exploreLoop()
     {
         int tempCoins;
         // You can think of it as the max amount of time in the day, if you like.
         int escape = 0;
+        clearScreen();
+        printVision();
         while (escape < 300)
         {
-            clearScreen();
-            printVision();
             switch (getInput())
             {
             case EXIT:
@@ -571,28 +835,51 @@ private:
                 clearScreen();
                 printVision();
                 cout << "You shouldn't stray too far from home.";
+                escape++;
                 break;
             case COIN:
                 tempCoins = rand() % 3 + 1;
                 numCoins += tempCoins;
                 clearScreen();
                 printVision();
-                cout << "\nYou found " << tempCoins << " coins!" << endl;
+                cout << "You found " << tempCoins << " coins!" << endl;
+                escape++;
                 break;
             case ENCOUNTER:
                 clearScreen();
                 printVision();
                 encounter();
+                if (energy < 0) // Tired after the encounter? Go home!
+                {
+                    energy = 0;
+                    return 2;
+                }
+
+                escape++;
                 break;
+            case TILE:
+                if (energy < 0) // Too much walking? Go home!
+                {
+                    energy = 0;
+                    clearScreen();
+                    printVision();
+                    return 1;
+                }
+                clearScreen();
+                printVision();
+                escape++;
+                break;
+            case MOUNTAIN:
+                clearScreen();
+                printVision();
+                cout << "You are blocked by impassable mountains." << endl;
             default:
                 break;
             }
-
-
         }
         return 0;
     }
-    
+
 };
 // --- END OF EXPLORATION MINIGAME ---
 
@@ -677,7 +964,7 @@ int main()
             clearScreen(); 
 
 	    // Call time decay function
-	    pet_Stats_Decay(int &hunger, int &thirst, int &happiness, time_t &decayTime)
+	    pet_Stats_Decay(hunger, thirst, happiness, decayTime)
 
             // Display happy or sad art depending on needs
             if (hunger >= 50 || thirst >= 50 || happiness >= 50) {

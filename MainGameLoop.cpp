@@ -15,6 +15,7 @@ Tuesday November 26th - Added incomplete exploration minigame
 Tuesday November 26th - Fixed Shop Menu exit, reworked Shop Menu to be more user friendly, other minor QOL changes. - Axel
 Wednesday November 27th - Added stats decay function (decay every 5 seconds) - Charlene (I hope I didn't break it LOL)
 Friday November 29th - Fixed game, resolved some errors
+Friday November 29th - Added functioning pet menu, using items on pet and whatnot - Axel
 */
 
 #include <iostream>
@@ -226,30 +227,74 @@ void pet_menu(int &hunger, int &thirst, int &happiness, string inventory[MAX_INV
 {
     while (true)
     {
-        /*
-        // Inventory Size
-        string inventory[MAX_INVENTORY_SIZE];
-        int itemCount = 0; 
 
-        //Determine if inventory is full 
-        if (itemCount >= MAX_INVENTORY_SIZE) {
-            cout << "Inventory full! " << endl; 
-            return; 
+        cout << "----------------[ Pet Menu ]-----------------" << endl;
+
+        for (int i = 0; i < itemCount; ++i)
+            cout << i + 1 << ") " << inventory[i] << endl; 
+        for (int i = itemCount; i < 5; ++i)
+            cout << i + 1 << ") " << "Empty Slot" << endl; 
+        
+        cout << "6) Exit Menu" << endl; 
+
+        int user_input;
+
+        while (true) // Input Validation
+        {
+            cout << "Enter Input: ";
+            cin >> user_input;
+
+            if (cin.fail() || !(cin.peek() == '\n') || user_input > 6 || user_input < 1)
+            {
+                invalid_input();
+            } else {
+                break;
+            }
+
         }
 
-        //Determine if inventory is empty
-        if (itemCount == 0) {
-            cout << "Your inventory is empty. " << endl; 
-            return; 
+        if (user_input == 6)
+        {
+            break;
         }
 
-        // Iterate through inventory 
-        cout << "Your inventory: "; 
-        for (int i = 0; i < itemCount; ++i) {
-            cout << inventory[i] << " "; 
+
+        user_input--; 
+        if (user_input >= itemCount){
+            cout << "Invalid selection. No item in this slot." << endl;
+            continue;
         }
-        cout << endl; 
-        */
+        string item = inventory[user_input]; 
+
+        if (item == "Water"){ // we should probably change these values around
+            thirst += 20;
+            if (thirst > 100) 
+                thirst = 100;
+
+        }else if (item == "Food") {
+            hunger += 20;
+            if (hunger > 100) 
+                hunger = 100;
+
+        }else if (item == "Toy"){
+            happiness += 20;
+            if (happiness > 100) 
+                happiness = 100;
+                
+        }else{
+            cout << "Invalid, No item at this position." << endl;
+            continue;
+        }
+
+        for (int i = user_input; i < itemCount - 1; ++i) {
+            inventory[i] = inventory[i+1]; // Shift items to left
+        }
+
+        itemCount--; 
+        if (itemCount < 0)
+            itemCount = 0;
+        
+        break;
     } 
 }
 

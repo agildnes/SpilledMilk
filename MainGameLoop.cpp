@@ -16,6 +16,7 @@ Tuesday November 26th - Fixed Shop Menu exit, reworked Shop Menu to be more user
 Wednesday November 27th - Added stats decay function (decay every 5 seconds) - Charlene (I hope I didn't break it LOL)
 Friday November 29th - Fixed game, resolved some errors
 Friday November 29th - Added functioning pet menu, using items on pet and whatnot - Axel
+Friday November 29th - Fixed missing semicolon in my code (typical, classic) - Charlene
 */
 
 #include <iostream>
@@ -1009,7 +1010,7 @@ int main()
             clearScreen(); 
 
 	    // Call time decay function
-	    pet_Stats_Decay(hunger, thirst, happiness, decayTime)
+	    pet_Stats_Decay(hunger, thirst, happiness, decayTime);
 
             // Display happy or sad art depending on needs
             if (hunger >= 50 || thirst >= 50 || happiness >= 50) {

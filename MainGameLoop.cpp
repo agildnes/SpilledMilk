@@ -22,6 +22,7 @@ Saturday November 30th - Fixed inventory and coin saving system (wasn't loading 
 Saturday November 30th - Menu reworks, organization, bug fixes. - Thomas
 Saturday November 30th - Minigame menu now clears properly - Thomas
 Saturday November 30th - Implemented Charlene's guessing game - Thomas
+Saturday November 30th - Added delete save data option, fixed the shop menu to ensure text displays correctly, made sure the name of pet displays with the stats - Charlene 
 */
 
 #include <iostream>
@@ -81,7 +82,7 @@ public:
 
     void displayStats() 
     {
-        cout << "Hunger: " << hunger << " | Thirst: " << thirst << " | Happiness: " << happiness << "\n" << endl;
+        cout << "Name: " << name << " | Hunger: " << hunger << " | Thirst: " << thirst << " | Happiness: " << happiness << "\n" << endl;
     }
 
     void statDecay(time_t& decayTime)
@@ -1094,6 +1095,7 @@ int main()
 {
     time_t decayTime = time(NULL); // Initialize time 
     bool exit_game = false;
+    bool delete_game = false; 
     playerPet pet; // Initialize pet
     explorationGame explore; // Initialize exploration game
     string inventory[MAX_INVENTORY_SIZE];
@@ -1159,7 +1161,8 @@ int main()
         << "1) Shop Menu\n"
         << "2) Pet Menu\n"
         << "3) Minigames Menu\n"
-        << "4) Exit Game" << endl;
+        << "4) Exit Game\n"
+        << "5) Delete Save File" << endl; 
 
 
         while (true) // Input Validation
@@ -1167,7 +1170,7 @@ int main()
             cout << "Enter Input: ";
             cin >> user_input;
 
-            if (cin.fail() || user_input > 4 || user_input < 1)
+            if (cin.fail() || user_input > 5 || user_input < 1)
             {
                 invalid_input();
             }
@@ -1195,11 +1198,37 @@ int main()
         case 4:
             exit_game = true;
             break;
+        case 5:
+            delete_game = true; 
+            break; 
 
         default:
             break;
         }
-
+         if (delete_game) {
+                cout << "Are you sure you want to delete your save file? This action cannot be undone (y/n): " << endl;
+                char delete_choice; 
+                cin >> delete_choice;
+                if (delete_choice == 'y' || delete_choice == 'Y') {
+                    // Attempt to remove the file
+                    if (remove("pet_data.txt") == 0) {
+                        cout << "Save file deleted successfully." << endl;
+                        // Revert values back
+                        pet.name = "";
+                        pet.hunger = 100;
+                        pet.thirst = 100;
+                        pet.happiness = 100;
+                        itemCount = 0;
+                        coins = 20; // Reset to default
+                    } else {
+                        cout << "Error: Could not delete save file. Please check file permissions." << endl;
+                    }
+                } else {
+                    cout << "Save file deletion canceled." << endl;
+            }
+            clearScreen(); 
+            break; 
+        }
         if (exit_game) {
             ofstream outFile("pet_data.txt");
             if (!outFile) {
@@ -1218,6 +1247,7 @@ int main()
 
             cout << "Pet data saved successfully." << endl;
             cout << "---Quitting Game---" << endl;
+            clearScreen(); 
             break;
         }
 

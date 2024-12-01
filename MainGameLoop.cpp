@@ -1054,7 +1054,7 @@ void minigame_menu(explorationGame& explore, int& coins, playerPet& pet, time_t&
         // Display the menu
         cout << "-------------[ Mini Games ]---------------\n";
         cout << "1) Exploration!\n";
-        cout << "2) Unavailable\n";
+        cout << "2) Number Guessing\n";
         cout << "3) Unavailable\n";
         cout << "4) Exit\n" << endl;
 

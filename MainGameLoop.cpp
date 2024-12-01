@@ -10,15 +10,16 @@ Sunday November 17th - Set up basic inventory, but I expect this to be modified 
 Sunday November 24th - Clear screen/terminal function, ASCII art, shop menu inventory/switch case handles coins and inventory, inventory saved to file implemented - Charlene
 Sunday November 24th - Fixed ASCII art, added pet_Stats_Decay function to keep track of needs decay, added pet_Stats function to display stats, implemented inventory in shop menu for a refund
 (so users can delete items), created global const variable for inventory, added a condition to show happy pet art or sad pet art based on needs - Charlene
-Monday November 25th - Add screen clear for apple
-Tuesday November 26th - Added incomplete exploration minigame
+Monday November 25th - Add screen clear for apple - Thomas
+Tuesday November 26th - Added incomplete exploration minigame- Thomas
 Tuesday November 26th - Fixed Shop Menu exit, reworked Shop Menu to be more user friendly, other minor QOL changes. - Axel
 Wednesday November 27th - Added stats decay function (decay every 5 seconds) - Charlene (I hope I didn't break it LOL)
-Friday November 29th - Fixed game, resolved some errors
+Friday November 29th - Fixed game, resolved some errors - Thomas
 Friday November 29th - Added functioning pet menu, using items on pet and whatnot - Axel
 Friday November 29th - Fixed missing semicolon in my code (typical, classic) - Charlene
-Saturday November 30th - Bug fixes, rearranging, organization.
+Saturday November 30th - Bug fixes, rearranging, organization. - Thomas
 Saturday November 30th - Fixed inventory and coin saving system (wasn't loading before) - Charlene
+Saturday November 30th - Menu reworks, organization, bug fixes. - Thomas
 */
 
 #include <iostream>

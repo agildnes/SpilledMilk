@@ -1083,11 +1083,16 @@ int guessingGame() {
 void minigame_menu(explorationGame& explore, int& coins, playerPet& pet, time_t& decayTime)
 {
     while (true) {
+
+        clearScreen();
+        pet.displayPet();
+        pet.displayStats();
+        
         // Display the menu
         cout << "-------------[ Mini Games ]---------------\n";
         cout << "1) Exploration!\n";
         cout << "2) Number Guessing\n";
-        cout << "4) Exit\n" << endl;
+        cout << "3) Exit\n" << endl;
 
         int choice;
         cin >> choice;

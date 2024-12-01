@@ -1206,13 +1206,13 @@ int main()
             break;
         }
          if (delete_game) {
-                cout << "Are you sure you want to delete your save file? This action cannot be undone (y/n): " << endl;
+                cout << "\nAre you sure you want to delete your save file? This action cannot be undone (y/n): ";
                 char delete_choice; 
                 cin >> delete_choice;
                 if (delete_choice == 'y' || delete_choice == 'Y') {
                     // Attempt to remove the file
                     if (remove("pet_data.txt") == 0) {
-                        cout << "Save file deleted successfully." << endl;
+                        cout << "\nSave file deleted successfully.\n" << endl;
                         // Revert values back
                         pet.name = "";
                         pet.hunger = 100;
@@ -1244,7 +1244,7 @@ int main()
             }
             outFile.close(); // Close after writing
 
-            cout << "Pet data saved successfully.\n" << endl;
+            cout << "\nPet data saved successfully.\n" << endl;
             cout << "---Quitting Game---\n" << endl;
             break;
         }

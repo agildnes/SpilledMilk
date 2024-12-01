@@ -1220,13 +1220,37 @@ int main()
                         pet.happiness = 100;
                         itemCount = 0;
                         coins = 20; // Reset to default
-                    } else {
-                        cout << "Error: Could not delete save file. Please check file permissions.\n" << endl;
+
+                        // Quit?
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cout << "Would you like to quit? (y/n): ";
+                        cin >> delete_choice;
+                        if (delete_choice == 'y' || delete_choice == 'Y')
+                        {
+                            cout << "---Quitting Game---\n" << endl;
+                            break;
+                        }
+                        else
+                        {
+                            while (true)
+                            {
+                            cout << "Enter a new pet name: ";
+                            cin >> pet.name;
+                            if (cin.fail())
+                                invalid_input("Invalid input, try again");
+                            else
+                                break;
+                            }
+                        }
+                    {
+                        cout << "\nError: Could not delete save file. Please check file permissions.\n" << endl;
                     }
+
+
+                    
                 } else {
-                    cout << "Save file deletion canceled.\n" << endl;
+                    cout << "\nSave file deletion canceled.\n" << endl;
             }
-            break; 
         }
         if (exit_game) {
             ofstream outFile("pet_data.txt");

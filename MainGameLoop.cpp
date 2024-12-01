@@ -27,6 +27,7 @@ Saturday November 30th - Reworked the Sell Menu; added an exit option, allowed m
 Saturday November 30th - Minor menu function tweaks - Thomas
 Saturday December 1st - Fixed save menu, had to rework Shop Menu (had bugs and didn't allow a user to exit the menu, so i had to revert to the previous commit) - Charlene
 Sunday December 1st - Fixed sell -> shop display bug, reimplemented tweaks from before since not broken, changed decay calculation, added some controls and formatting to explorationGame, coins now child of playerPet class - Thomas
+Sunday December 1st - Fixed WASD text, minor spelling fixes in explorationGame - Charlene
 */
 
 #include <iostream>
@@ -629,7 +630,7 @@ private:
         {
             cout << "You fall into an inconveniently placed pitfall trap."
                 << "\n After a while you manage to climb out, leaving you"
-                << "\ntired from whe whole ordeal.\n\n-20 energy\n";
+                << "\ntired from the whole ordeal.\n\n-20 energy\n";
             energy -= 20;
             return 0;
         }
@@ -683,7 +684,7 @@ private:
         if (var <= 30)
         {
             tempCoins = rand() % 7 + 3;
-            cout << "You find a buried chest! inside is a bunch ofjunk, but"
+            cout << "You find a buried chest! inside is a bunch of junk, but"
                 << "\nafter some digging around, you collect a few coins.\n\n+"
                 << tempCoins << " coins\n";
             numCoins += tempCoins;
@@ -720,7 +721,7 @@ private:
         }
         if (var <= 41)
         {
-            cout << "A saudi prince offers you a million coins in exchange for"
+            cout << "A Saudi prince offers you a million coins in exchange for"
                 << "\nan initial investment. Knowing they must be telling the"
                 << "\ntruth, you give them some of your coins. You wonder when"
                 << "\nthey'll contact you.\n\n-10 coins\n";
@@ -879,7 +880,7 @@ private:
         }
         cout << "\\-------------------------------/\n" << endl;
         cout << "Energy: " << energy << "     Coins: " << numCoins << "\n" << endl;
-        cout << "W - up | A - down | S - Left | D - right | ! - exit\n" << endl;
+        cout << "W - Up | A - Left | S - Down | D - Right | ! - Exit\n" << endl;
     }
 
     int getInput()
@@ -1162,7 +1163,7 @@ int main()
             else
             {
                 invalid_input("Invalid choice. Please enter 'Y' or 'N'. ");
-            }
+            }xf
         }
     }
 

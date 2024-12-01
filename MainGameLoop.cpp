@@ -23,6 +23,7 @@ Saturday November 30th - Menu reworks, organization, bug fixes. - Thomas
 Saturday November 30th - Minigame menu now clears properly - Thomas
 Saturday November 30th - Implemented Charlene's guessing game - Thomas
 Saturday November 30th - Added delete save data option, fixed the shop menu to ensure text displays correctly, made sure the name of pet displays with the stats - Charlene 
+Saturday November 30th - Reworked the Sell Menu; added an exit option, allowed multiple items sold in a single instance, shows entire inventory space, clears shop menu, other small changes - Axel
 */
 
 #include <iostream>
@@ -124,13 +125,30 @@ void displayShopMenu(playerPet& pet, int coins)
         << "5) Exit Menu\n" << endl;
 }
 
+void displaySellMenu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& pet, int coins)
+{
+    clearScreen();
+    pet.displayPet();
+    pet.displayStats();
+
+    cout << "----------------[ Sell Menu ]-----------------" << endl;
+
+    for (int i = 0; i < itemCount; ++i)
+        cout << i + 1 << ") " << inventory[i] << endl;
+    for (int i = itemCount; i < 5; ++i)
+        cout << i + 1 << ") " << "Empty Slot" << endl;
+
+    cout << "6) Exit Menu\n" << endl;
+}
+
+
 // Shop menu
 void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) // This is where you spend money on items for your pet.
 {
-    displayShopMenu(pet, coins);
 
     while (true)
     {
+        displayShopMenu(pet, coins);
         bool leave_shop = false;
         int user_input;
         
@@ -206,48 +224,67 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
                 cout << "You have no items to sell!\n" << endl;
             }
             else {
-                cout << "Your inventory: " << endl;
-                for (int i = 0; i < itemCount; ++i) {
-                    cout << i + 1 << ") " << inventory[i] << "\n " << endl;
-                }
+                displaySellMenu(inventory, itemCount, pet, coins);
+                while (true)
+                {
+                    int user_input;
 
-                int item_Sell;
-                cout << "Enter the number of the item you want to sell: ";
-                cin >> item_Sell;
+                    while (true) // Input Validation
+                    {
+                        cout << "Enter Input: ";
+                        cin >> user_input;
 
-                // Input validation
-                if (cin.fail() || item_Sell > itemCount || item_Sell < 1) {
-                    invalid_input();
-                    break;
-                }
+                        if (cin.fail() || user_input > MAX_INVENTORY_SIZE + 1 || user_input < 1)
+                        {
+                            invalid_input();
+                        }
+                        else {
+                            break;
+                        }
 
-                item_Sell--;
-                string item = inventory[item_Sell];
+                    }
 
-                int refund = 0;
-                if (item == "Water") {
-                    refund = 2; // User gets half coins (round up) 
-                }
-                else if (item == "Food") { // User gets half coins (round up)
-                    refund = 3;
-                }
-                else if (item == "Toy") { // User gets half coins (round up)
-                    refund = 5;
-                }
+                    displaySellMenu(inventory, itemCount, pet, coins);
 
-                coins += refund;
-                if (refund > 1) {
-                    cout << item << " sold! You received " << refund << " coins." << endl;
-                }
-                else {
-                    cout << item << " sold! You received " << refund << " coin." << endl;
-                }
+                    if (user_input == MAX_INVENTORY_SIZE + 1)
+                    {
+                        break;
+                    }
 
 
-                for (int i = item_Sell; i < itemCount - 1; ++i) {
-                    inventory[i] = inventory[i + 1]; // Shift items to left
+                    user_input--;
+                    if (user_input >= itemCount) {
+                        cout << "Invalid selection. No item in this slot." << endl;
+                        continue;
+                    }
+                    string item = inventory[user_input];
+
+                    int refund = 0;
+                    if (item == "Water") { 
+                        refund = 2;
+                    }
+                    else if (item == "Food") {
+                        refund = 3;
+                    }
+                    else if (item == "Toy") {
+                        refund = 5;
+                    }
+                    else {
+                        cout << "Invalid, No item at this position." << endl;
+                        continue;
+                    }
+
+                    for (int i = user_input; i < itemCount - 1; ++i) {
+                        inventory[i] = inventory[i + 1]; // Shift items to left
+                    }
+
+                    itemCount--;
+                    if (itemCount < 0)
+                        itemCount = 0;
+
+                    displaySellMenu(inventory, itemCount, pet, coins);
+                    cout << "Sold " << item << ".\n" << endl;
                 }
-                itemCount--;
             }
             break;
 
@@ -264,6 +301,23 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
             break;
         }
     }
+}
+
+// Item menu display
+void displayPetMenu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& pet)
+{
+    clearScreen();
+    pet.displayPet();
+    pet.displayStats();
+
+    cout << "----------------[ Pet Menu ]-----------------" << endl;
+
+    for (int i = 0; i < itemCount; ++i)
+        cout << i + 1 << ") " << inventory[i] << endl;
+    for (int i = itemCount; i < 5; ++i)
+        cout << i + 1 << ") " << "Empty Slot" << endl;
+
+    cout << "6) Exit Menu\n" << endl;
 }
 
 // Item menu display

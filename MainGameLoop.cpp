@@ -27,7 +27,9 @@ Saturday November 30th - Reworked the Sell Menu; added an exit option, allowed m
 Saturday November 30th - Minor menu function tweaks - Thomas
 Saturday December 1st - Fixed save menu, had to rework Shop Menu (had bugs and didn't allow a user to exit the menu, so i had to revert to the previous commit) - Charlene
 Sunday December 1st - Fixed sell -> shop display bug, reimplemented tweaks from before since not broken, changed decay calculation, added some controls and formatting to explorationGame, coins now child of playerPet class - Thomas
-Sunday December 1st - Fixed WASD text, minor spelling fixes in explorationGame - Charlene
+Sunday December 1st - Fixed WASD text, minor spelling fixes in explorationGame - CharleneSunday December 1st - Fixed WASD text, minor spelling fixes in explorationGame - Charlene
+Sunday December 1st - Fixed delete data bug and random text i added -_- smh - Charlene
+
 */
 
 #include <iostream>
@@ -1163,7 +1165,7 @@ int main()
             else
             {
                 invalid_input("Invalid choice. Please enter 'Y' or 'N'. ");
-            }xf
+            }
         }
     }
 
@@ -1277,6 +1279,7 @@ int main()
                     pet.happiness = 100;
                     itemCount = 0;
                     pet.coins = 20; // Reset to default
+                    delete_game = 0;
 
                     // Quit?
                     cin.ignore(numeric_limits<streamsize>::max(), '\n');

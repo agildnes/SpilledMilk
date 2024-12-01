@@ -8,7 +8,7 @@ Sunday, November 10th - Set up basic minigame menu (Assuming there will be at le
 Tuesday November 12th - Set up the shop menu, the inventory system still isn't up yet, so it isn't very useful. - Axel
 Sunday November 17th - Set up basic inventory, but I expect this to be modified again in the future once game is more developed - Charlene
 Sunday November 24th - Clear screen/terminal function, ASCII art, shop menu inventory/switch case handles coins and inventory, inventory saved to file implemented - Charlene
-Sunday November 24th - Fixed ASCII art, added pet_Stats_Decay function to keep track of needs decay, added pet_Stats function to display stats, implemented inventory in shop menu for a refund 
+Sunday November 24th - Fixed ASCII art, added pet_Stats_Decay function to keep track of needs decay, added pet_Stats function to display stats, implemented inventory in shop menu for a refund
 (so users can delete items), created global const variable for inventory, added a condition to show happy pet art or sad pet art based on needs - Charlene
 Monday November 25th - Add screen clear for apple
 Tuesday November 26th - Added incomplete exploration minigame
@@ -27,7 +27,6 @@ Saturday November 30th - Fixed inventory and coin saving system (wasn't loading 
 #include <cstdlib> // ("cls" and "clear")
 #include <ctime> 
 #include <limits> // (For inventory)
-#include <iomanip>
 
 using namespace std;
 
@@ -102,32 +101,41 @@ public:
     }
 };
 
+// Shop menu display
+void displayShopMenu(playerPet& pet, int coins)
+{
+    clearScreen();
+    pet.displayPet();
+    pet.displayStats();
+
+    cout << "----------------[ Shop Menu ]-----------------" << endl;
+    if (coins >= 10)
+        cout << "                [ Coins: " << coins << " ]" << endl;
+    else
+        cout << "                [ Coins: " << coins << "  ]" << endl;
+    cout << "1) Water - 3 coins\n"
+        << "2) Food - 5 coins\n"
+        << "3) Toy - 10 coins\n"
+        << "4) Sell item\n"
+        << "5) Exit Menu\n" << endl;
+}
+
+// Shop menu
 void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) // This is where you spend money on items for your pet.
 {
+    displayShopMenu(pet, coins);
+
     while (true)
     {
-        int user_input;
         bool leave_shop = false;
-
-        clearScreen();
-        pet.displayPet();
-        pet.displayStats();
-
-        cout << "----------------[ Shop Menu ]-----------------" << endl;
-        if (coins >= 10)
-            cout << "                [ Coins: " << coins << " ]" << endl;
-        else
-            cout << "                [ Coins: " << coins << "  ]" << endl;
-        cout << "1) Water - 3 coins\n";
-        cout << "2) Food - 5 coins\n";
-        cout << "3) Toy - 10 coins\n";
-        cout << "4) Sell item\n";
-        cout << "5) Exit Menu" << endl;
+        int user_input;
+        
 
         while (true) // Input Validation
         {
             cout << "Enter Input: ";
             cin >> user_input;
+
 
             if (cin.fail() || user_input > 5 || user_input < 1)
             {
@@ -138,13 +146,15 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
             }
         }
 
+        displayShopMenu(pet, coins);
+
         switch (user_input) {
         case 1: // Water
             if (coins >= 3) {
                 if (itemCount < MAX_INVENTORY_SIZE) {
                     coins -= 3;
                     inventory[itemCount++] = "Water";
-                    cout << "You purchased Water! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << endl;
+                    cout << "You purchased Water! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << "\n " << endl;
                 }
                 else {
                     cout << "Inventory full!" << endl;
@@ -160,7 +170,7 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
                 if (itemCount < MAX_INVENTORY_SIZE) {
                     coins -= 5;
                     inventory[itemCount++] = "Food";
-                    cout << "You purchased Food! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << endl;
+                    cout << "You purchased Food! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << "\n " << endl;
                 }
                 else {
                     cout << "Inventory full!" << endl;
@@ -176,29 +186,29 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
                 if (itemCount < MAX_INVENTORY_SIZE) {
                     coins -= 10;
                     inventory[itemCount++] = "Toy";
-                    cout << "You purchased a Toy! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << endl;
+                    cout << "You purchased a Toy! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << "\n " << endl;
                 }
                 else {
-                    cout << "Inventory full!" << endl;
+                    cout << "Inventory full!\n" << endl;
                 }
             }
             else {
-                cout << "Not enough coins!" << endl;
+                cout << "Not enough coins!\n" << endl;
             }
             break;
 
         case 4: // Sell an item and get a refund
             if (itemCount == 0) {
-                cout << "You have no items to sell!" << endl;
+                cout << "You have no items to sell!\n" << endl;
             }
             else {
                 cout << "Your inventory: " << endl;
                 for (int i = 0; i < itemCount; ++i) {
-                    cout << i + 1 << ") " << inventory[i] << endl;
+                    cout << i + 1 << ") " << inventory[i] << "\n " << endl;
                 }
 
                 int item_Sell;
-                cout << "Enter the number of the item you want to sell: " << endl;
+                cout << "Enter the number of the item you want to sell: ";
                 cin >> item_Sell;
 
                 // Input validation
@@ -249,24 +259,33 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
         {
             break;
         }
-
     }
 }
 
+// Item menu display
+void displayPetMenu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& pet)
+{
+    clearScreen();
+    pet.displayPet();
+    pet.displayStats();
+
+    cout << "----------------[ Pet Menu ]-----------------" << endl;
+
+    for (int i = 0; i < itemCount; ++i)
+        cout << i + 1 << ") " << inventory[i] << endl;
+    for (int i = itemCount; i < 5; ++i)
+        cout << i + 1 << ") " << "Empty Slot" << endl;
+
+    cout << "6) Exit Menu\n" << endl;
+}
+
+// Item menu
 void pet_menu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& pet) // This is where you feed, water, and play with the pet. It also serves as an inventory.
 {
+    displayPetMenu(inventory, itemCount, pet);
+
     while (true)
     {
-
-        cout << "----------------[ Pet Menu ]-----------------" << endl;
-
-        for (int i = 0; i < itemCount; ++i)
-            cout << i + 1 << ") " << inventory[i] << endl;
-        for (int i = itemCount; i < 5; ++i)
-            cout << i + 1 << ") " << "Empty Slot" << endl;
-
-        cout << "6) Exit Menu\n" << endl;
-
         int user_input;
 
         while (true) // Input Validation
@@ -274,7 +293,7 @@ void pet_menu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& p
             cout << "Enter Input: ";
             cin >> user_input;
 
-            if (cin.fail() || !(cin.peek() == '\n') || user_input > 6 || user_input < 1)
+            if (cin.fail() || user_input > MAX_INVENTORY_SIZE + 1 || user_input < 1)
             {
                 invalid_input();
             }
@@ -284,7 +303,9 @@ void pet_menu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& p
 
         }
 
-        if (user_input == 6)
+        displayPetMenu(inventory, itemCount, pet);
+
+        if (user_input == MAX_INVENTORY_SIZE + 1)
         {
             break;
         }
@@ -301,26 +322,21 @@ void pet_menu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& p
             pet.thirst += 20;
             if (pet.thirst > 100)
                 pet.thirst = 100;
-
         }
         else if (item == "Food") {
             pet.hunger += 20;
             if (pet.hunger > 100)
                 pet.hunger = 100;
-
         }
         else if (item == "Toy") {
             pet.happiness += 20;
             if (pet.happiness > 100)
                 pet.happiness = 100;
-
         }
         else {
             cout << "Invalid, No item at this position." << endl;
             continue;
         }
-
-        clearScreen();
 
         for (int i = user_input; i < itemCount - 1; ++i) {
             inventory[i] = inventory[i + 1]; // Shift items to left
@@ -330,7 +346,8 @@ void pet_menu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& p
         if (itemCount < 0)
             itemCount = 0;
 
-        break;
+        displayPetMenu(inventory, itemCount, pet);
+        cout << "Used " << item << ".\n" << endl;
     }
 }
 
@@ -791,10 +808,7 @@ private:
             numCoins += 20;
             return 0;
         }
-
-
-
-
+        return 1; // Not implemented, error
     }
 
     // Only prints player vision.
@@ -806,7 +820,7 @@ private:
             cout << "| ";
             if (iy < 0 || iy >= ysize)
             {
-                cout << setw(30) << "" << "|\n";
+                cout << "                              " << "|\n";
                 continue;
             }
             else
@@ -967,15 +981,15 @@ private:
 };
 // --- END OF EXPLORATION MINIGAME ---
 
-void minigame_menu(explorationGame& explore)
+void minigame_menu(explorationGame& explore, int& coins, playerPet& pet, time_t& decayTime)
 {
     bool exiting = 0;
     while (!exiting) {
         // Display the menu
         cout << "-------------[ Mini Games ]---------------\n";
         cout << "1) Exploration!\n";
-        cout << "2) Game Name 2\n";
-        cout << "3) Game Name 3\n";
+        cout << "2) Unavailable\n";
+        cout << "3) Unavailable\n";
         cout << "4) Exit\n" << endl;
 
         int choice;
@@ -986,14 +1000,14 @@ void minigame_menu(explorationGame& explore)
         switch (choice) {
         case 1: {
             explore.runGame();
+            coins += explore.numCoins;
+            pet.statDecay(decayTime);
             break;
         }
         case 2: {
-            cout << "Welcome to Game Name 2!" << endl; // Possible game idea: Dice Rolls
             break;
         }
         case 3: {
-            cout << "Welcome to Game Name 3!" << endl; // Possible game idea: Daily Spin 
             break;
         }
         case 4: {
@@ -1008,18 +1022,17 @@ void minigame_menu(explorationGame& explore)
 
 int main()
 {
-    bool exit_game = false;
-    playerPet pet;
-    int coins = 20; // Default Money
-    string inventory[MAX_INVENTORY_SIZE];
-    int itemCount = 0;
     time_t decayTime = time(NULL); // Initialize time 
-    // decay - (thirst 3x) (hunger 2x) (happiness 1x) exact difference in value is subject to change, however they should not decay at the same rate
-
+    bool exit_game = false;
+    playerPet pet; // Initialize pet
     explorationGame explore; // Initialize exploration game
+    string inventory[MAX_INVENTORY_SIZE];
+    int coins = 20; // Default Money
+    int itemCount = 0;
+    
 
     // Try to load data from the file
-     ifstream inFile("pet_data.txt");
+    ifstream inFile("pet_data.txt");
     if (inFile) {
         getline(inFile, pet.name);
         inFile >> pet.hunger >> pet.thirst >> pet.happiness; // Load pet stats
@@ -1029,7 +1042,8 @@ int main()
         }
         inFile >> coins;  // Load coins
         inFile.close();
-    } else {
+    }
+    else {
         cout << "No pet data found. Create a new pet? (y/n): ";
         char choice; // Local variable for saving
         while (1)
@@ -1054,6 +1068,7 @@ int main()
             }
         }
     }
+
 
     while (true) // Main Game Loop
     {
@@ -1093,9 +1108,6 @@ int main()
         switch (user_input) // Send User to Proper Menu
         {
         case 1:
-            clearScreen();
-            pet.displayPet();
-            pet.displayStats();
             shop_menu(coins, inventory, itemCount, pet);
             break;
         case 2:
@@ -1108,7 +1120,7 @@ int main()
             clearScreen();
             pet.displayPet();
             pet.displayStats();
-            minigame_menu(explore);
+            minigame_menu(explore, coins, pet, decayTime);
             break;
         case 4:
             exit_game = true;

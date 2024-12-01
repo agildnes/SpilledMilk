@@ -24,7 +24,7 @@ Saturday November 30th - Minigame menu now clears properly - Thomas
 Saturday November 30th - Implemented Charlene's guessing game - Thomas
 Saturday November 30th - Added delete save data option, fixed the shop menu to ensure text displays correctly, made sure the name of pet displays with the stats - Charlene
 Saturday November 30th - Reworked the Sell Menu; added an exit option, allowed multiple items sold in a single instance, shows entire inventory space, clears shop menu, other small changes - Axel
-Saturday November 30th - Fixed, now runs
+Saturday November 30th - Minor menu function tweaks - Thomas
 */
 
 #include <iostream>
@@ -150,7 +150,6 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
     while (true)
     {
         displayShopMenu(pet, coins);
-        bool leave_shop = false;
         int user_input;
 
 
@@ -290,15 +289,9 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
             break;
 
         case 5:
-            leave_shop = true;
-            break;
+            return;
 
         default:
-            break;
-        }
-
-        if (leave_shop)
-        {
             break;
         }
     }
@@ -1096,8 +1089,7 @@ int guessingGame() {
 
 void minigame_menu(explorationGame& explore, int& coins, playerPet& pet, time_t& decayTime)
 {
-    bool exiting = 0;
-    while (!exiting) {
+    while (true) {
         // Display the menu
         cout << "-------------[ Mini Games ]---------------\n";
         cout << "1) Exploration!\n";
@@ -1128,14 +1120,12 @@ void minigame_menu(explorationGame& explore, int& coins, playerPet& pet, time_t&
             break;
         }
         case 4: {
-            cout << "Exiting Mini Games... Goodbye!" << endl;
-            exiting = 1;
+            return;
             break;
         }
         }
     }
 }
-
 
 int main()
 {

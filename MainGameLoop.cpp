@@ -22,8 +22,9 @@ Saturday November 30th - Fixed inventory and coin saving system (wasn't loading 
 Saturday November 30th - Menu reworks, organization, bug fixes. - Thomas
 Saturday November 30th - Minigame menu now clears properly - Thomas
 Saturday November 30th - Implemented Charlene's guessing game - Thomas
-Saturday November 30th - Added delete save data option, fixed the shop menu to ensure text displays correctly, made sure the name of pet displays with the stats - Charlene 
+Saturday November 30th - Added delete save data option, fixed the shop menu to ensure text displays correctly, made sure the name of pet displays with the stats - Charlene
 Saturday November 30th - Reworked the Sell Menu; added an exit option, allowed multiple items sold in a single instance, shows entire inventory space, clears shop menu, other small changes - Axel
+Saturday November 30th - Fixed, now runs
 */
 
 #include <iostream>
@@ -81,7 +82,7 @@ public:
         }
     }
 
-    void displayStats() 
+    void displayStats()
     {
         cout << "Name: " << name << " | Hunger: " << hunger << " | Thirst: " << thirst << " | Happiness: " << happiness << "\n" << endl;
     }
@@ -151,7 +152,7 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
         displayShopMenu(pet, coins);
         bool leave_shop = false;
         int user_input;
-        
+
 
         while (true) // Input Validation
         {
@@ -260,7 +261,7 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
                     string item = inventory[user_input];
 
                     int refund = 0;
-                    if (item == "Water") { 
+                    if (item == "Water") {
                         refund = 2;
                     }
                     else if (item == "Food") {
@@ -301,23 +302,6 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
             break;
         }
     }
-}
-
-// Item menu display
-void displayPetMenu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& pet)
-{
-    clearScreen();
-    pet.displayPet();
-    pet.displayStats();
-
-    cout << "----------------[ Pet Menu ]-----------------" << endl;
-
-    for (int i = 0; i < itemCount; ++i)
-        cout << i + 1 << ") " << inventory[i] << endl;
-    for (int i = itemCount; i < 5; ++i)
-        cout << i + 1 << ") " << "Empty Slot" << endl;
-
-    cout << "6) Exit Menu\n" << endl;
 }
 
 // Item menu display
@@ -425,7 +409,7 @@ public:
                 cout << gameField[ix][iy] << ' ';
             }
             cout << '\n' << "Press any key to continue" << endl;
-            cin.ignore(numeric_limits<streamsize>::max() , '\n');
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             getchar();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             clearScreen();
@@ -439,10 +423,10 @@ public:
         for (int i : tempvar)
             encounter(i);
         cout << '\n' << "Press any key to continue" << endl;
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            getchar();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            clearScreen();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        getchar();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        clearScreen();
     }
 
     // Runs the game
@@ -1107,7 +1091,7 @@ int guessingGame() {
         }
     }
 
-    return ( 1 + attempts);
+    return (1 + attempts);
 }
 
 void minigame_menu(explorationGame& explore, int& coins, playerPet& pet, time_t& decayTime)
@@ -1157,13 +1141,13 @@ int main()
 {
     time_t decayTime = time(NULL); // Initialize time 
     bool exit_game = false;
-    bool delete_game = false; 
+    bool delete_game = false;
     playerPet pet; // Initialize pet
     explorationGame explore; // Initialize exploration game
     string inventory[MAX_INVENTORY_SIZE];
     int coins = 20; // Default Money
     int itemCount = 0;
-    
+
 
     // Try to load data from the file
     ifstream inFile("pet_data.txt");
@@ -1220,11 +1204,11 @@ int main()
         int user_input;
 
         cout << "----------------[ Main Menu ]-----------------\n"
-        << "1) Shop Menu\n"
-        << "2) Pet Menu\n"
-        << "3) Minigames Menu\n"
-        << "4) Exit Game\n"
-        << "5) Delete Save File" << endl; 
+            << "1) Shop Menu\n"
+            << "2) Pet Menu\n"
+            << "3) Minigames Menu\n"
+            << "4) Exit Game\n"
+            << "5) Delete Save File" << endl;
 
 
         while (true) // Input Validation
@@ -1261,81 +1245,83 @@ int main()
             exit_game = true;
             break;
         case 5:
-            delete_game = true; 
-            break; 
+            delete_game = true;
+            break;
 
         default:
             break;
         }
-         if (delete_game) {
-                cout << "\nAre you sure you want to delete your save file? This action cannot be undone (y/n): ";
-                char delete_choice; 
-                cin >> delete_choice;
-                if (delete_choice == 'y' || delete_choice == 'Y') {
-                    // Attempt to remove the file
-                    if (remove("pet_data.txt") == 0) {
-                        cout << "\nSave file deleted successfully.\n" << endl;
-                        // Revert values back
-                        pet.name = "";
-                        pet.hunger = 100;
-                        pet.thirst = 100;
-                        pet.happiness = 100;
-                        itemCount = 0;
-                        coins = 20; // Reset to default
+        if (delete_game) {
+            cout << "\nAre you sure you want to delete your save file? This action cannot be undone (y/n): ";
+            char delete_choice;
+            cin >> delete_choice;
+            if (delete_choice == 'y' || delete_choice == 'Y') {
+                // Attempt to remove the file
+                if (remove("pet_data.txt") == 0) {
+                    cout << "\nSave file deleted successfully.\n" << endl;
+                    // Revert values back
+                    pet.name = "";
+                    pet.hunger = 100;
+                    pet.thirst = 100;
+                    pet.happiness = 100;
+                    itemCount = 0;
+                    coins = 20; // Reset to default
 
-                        // Quit?
-                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                        cout << "Would you like to quit? (y/n): ";
-                        cin >> delete_choice;
-                        if (delete_choice == 'y' || delete_choice == 'Y')
+                    // Quit?
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << "Would you like to quit? (y/n): ";
+                    cin >> delete_choice;
+                    if (delete_choice == 'y' || delete_choice == 'Y')
+                    {
+                        cout << "---Quitting Game---\n" << endl;
+                        break;
+                    }
+                    else
+                    {
+                        while (true)
                         {
-                            cout << "---Quitting Game---\n" << endl;
-                            break;
-                        }
-                        else
-                        {
-                            while (true)
-                            {
                             cout << "Enter a new pet name: ";
                             cin >> pet.name;
                             if (cin.fail())
                                 invalid_input("Invalid input, try again");
                             else
                                 break;
-                            }
                         }
+                    }
                     {
                         cout << "\nError: Could not delete save file. Please check file permissions.\n" << endl;
                     }
 
 
-                    
-                } else {
+
+                }
+                else {
                     cout << "\nSave file deletion canceled.\n" << endl;
+                }
             }
-        }
-        if (exit_game) {
-            ofstream outFile("pet_data.txt");
-            if (!outFile) {
-                cout << "Error opening save file! Please check file permissions or disk space.\n" << endl;
+            if (exit_game) {
+                ofstream outFile("pet_data.txt");
+                if (!outFile) {
+                    cout << "Error opening save file! Please check file permissions or disk space.\n" << endl;
+                    break;
+                }
+
+                outFile << pet.name << endl;
+                outFile << pet.hunger << " " << pet.thirst << " " << pet.happiness << endl; // Save stats
+
+                outFile << itemCount << endl; // Inventory saving
+                for (int i = 0; i < itemCount; ++i) {
+                    outFile << inventory[i] << endl;
+                }
+                outFile.close(); // Close after writing
+
+                cout << "\nPet data saved successfully.\n" << endl;
+                cout << "---Quitting Game---\n" << endl;
                 break;
             }
 
-            outFile << pet.name << endl;
-            outFile << pet.hunger << " " << pet.thirst << " " << pet.happiness << endl; // Save stats
-
-            outFile << itemCount << endl; // Inventory saving
-            for (int i = 0; i < itemCount; ++i) {
-                outFile << inventory[i] << endl;
-            }
-            outFile.close(); // Close after writing
-
-            cout << "\nPet data saved successfully.\n" << endl;
-            cout << "---Quitting Game---\n" << endl;
-            break;
         }
 
+        return 0;
     }
-
-    return 0;
 }

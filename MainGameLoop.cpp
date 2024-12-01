@@ -26,6 +26,7 @@ Saturday November 30th - Added delete save data option, fixed the shop menu to e
 Saturday November 30th - Reworked the Sell Menu; added an exit option, allowed multiple items sold in a single instance, shows entire inventory space, clears shop menu, other small changes - Axel
 Saturday November 30th - Minor menu function tweaks - Thomas
 Saturday December 1st - Fixed save menu, had to rework Shop Menu (had bugs and didn't allow a user to exit the menu, so i had to revert to the previous commit) - Charlene
+Sunday December 1st - Fixed sell -> shop display bug, reimplemented tweaks from before since not broken, changed decay calculation, added some controls and formatting to explorationGame, coins now child of playerPet class - Thomas
 */
 
 #include <iostream>
@@ -61,7 +62,7 @@ void invalid_input(string message = "Invalid Input. Please enter a valid number.
 class playerPet
 {
 public:
-    int hunger = 100, thirst = 100, happiness = 100;
+    int hunger = 100, thirst = 100, happiness = 100, coins = 20;
 
     string name; // Pet Name
 
@@ -85,7 +86,7 @@ public:
 
     void displayStats()
     {
-        cout << "Name: " << name << " | Hunger: " << hunger << " | Thirst: " << thirst << " | Happiness: " << happiness << "\n" << endl;
+        cout << "Name: " << name << " | Hunger: " << hunger << " | Thirst: " << thirst << " | Happiness: " << happiness << " | Coins: " << coins << endl;
     }
 
     void statDecay(time_t& decayTime)
@@ -93,305 +94,290 @@ public:
         time_t currentTime = time(NULL); // Current time; 
         double secondsElapsed = difftime(currentTime, decayTime); // Time difference
 
-        // Every 5 seconds, there is a decay in stats (we can change this if needed)
-        if (secondsElapsed >= 5) {
-            thirst = thirst - 3;
-            hunger = hunger - 2;
-            happiness = happiness - 1;
+        thirst -= secondsElapsed / 4;
+        hunger -= secondsElapsed / 6;
+        happiness -= secondsElapsed / 8;
 
-            if (hunger < 0) hunger = 0; // Hunger can't go past zero
-            if (thirst < 0) thirst = 0; // Thirst can't go past zero
-            if (happiness < 0) happiness = 0; // Happiness can't go past zero
+        if (hunger < 0) hunger = 0; // Hunger can't go past zero
+        if (thirst < 0) thirst = 0; // Thirst can't go past zero
+        if (happiness < 0) happiness = 0; // Happiness can't go past zero
 
-            decayTime = currentTime;
-        }
+        decayTime = currentTime;
     }
 };
-
 // Shop menu display
 void displayShopMenu(playerPet& pet, int coins)
-{
-    clearScreen();
-    pet.displayPet();
-    pet.displayStats();
+    {
+        clearScreen();
+        pet.displayPet();
+        pet.displayStats();
 
-    cout << "----------------[ Shop Menu ]-----------------" << endl;
-    if (coins >= 10)
-        cout << "                [ Coins: " << coins << " ]" << endl;
-    else
-        cout << "                [ Coins: " << coins << "  ]" << endl;
-    cout << "1) Water - 3 coins\n"
-        << "2) Food - 5 coins\n"
-        << "3) Toy - 10 coins\n"
-        << "4) Sell item\n"
-        << "5) Exit Menu\n" << endl;
-}
+        cout << "----------------[ Shop Menu ]-----------------" << endl;
+        cout << "1) Water - 3 coins\n"
+            << "2) Food - 5 coins\n"
+            << "3) Toy - 10 coins\n"
+            << "4) Sell item\n"
+            << "5) Exit Menu\n" << endl;
+    }
 
 void displaySellMenu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& pet, int coins)
-{
-    clearScreen();
-    pet.displayPet();
-    pet.displayStats();
+    {
+        clearScreen();
+        pet.displayPet();
+        pet.displayStats();
 
-    cout << "----------------[ Sell Menu ]-----------------" << endl;
+        cout << "----------------[ Sell Menu ]-----------------" << endl;
 
-    for (int i = 0; i < itemCount; ++i)
-        cout << i + 1 << ") " << inventory[i] << endl;
-    for (int i = itemCount; i < 5; ++i)
-        cout << i + 1 << ") " << "Empty Slot" << endl;
+        for (int i = 0; i < itemCount; ++i)
+            cout << i + 1 << ") " << inventory[i] << endl;
+        for (int i = itemCount; i < MAX_INVENTORY_SIZE; ++i)
+            cout << i + 1 << ") " << "Empty Slot" << endl;
 
-    cout << "6) Exit Menu\n" << endl;
-}
-
+        cout << "6) Exit Menu\n" << endl;
+    }
 
 void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) // This is where you spend money on items for your pet.
-{ displayShopMenu(pet, coins);
-
-    while (true)
     {
-        bool leave_shop = false;
-        int user_input;
-
-
-        while (true) // Input Validation
-        {
-            cout << "Enter Input: ";
-            cin >> user_input;
-
-
-            if (cin.fail() || user_input > 5 || user_input < 1)
-            {
-                invalid_input();
-            }
-            else {
-                break;
-            }
-        }
-
         displayShopMenu(pet, coins);
 
-        switch (user_input) {
-        case 1: // Water
-            if (coins >= 3) {
-                if (itemCount < MAX_INVENTORY_SIZE) {
-                    coins -= 3;
-                    inventory[itemCount++] = "Water";
-                    cout << "You purchased Water! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << "\n " << endl;
-                }
-                else {
-                    cout << "Inventory full!" << endl;
-                }
-            }
-            else {
-                cout << "Not enough coins!" << endl;
-            }
-            break;
+        while (true)
+        {
+            int user_input;
 
-        case 2: // Food
-            if (coins >= 5) {
-                if (itemCount < MAX_INVENTORY_SIZE) {
-                    coins -= 5;
-                    inventory[itemCount++] = "Food";
-                    cout << "You purchased Food! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << "\n " << endl;
-                }
-                else {
-                    cout << "Inventory full!" << endl;
-                }
-            }
-            else {
-                cout << "Not enough coins!" << endl;
-            }
-            break;
+            while (true) // Input Validation
+            {
+                cout << "Enter Input: ";
+                cin >> user_input;
 
-        case 3: // Toy
-            if (coins >= 10) {
-                if (itemCount < MAX_INVENTORY_SIZE) {
-                    coins -= 10;
-                    inventory[itemCount++] = "Toy";
-                    cout << "You purchased a Toy! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << "\n " << endl;
-                }
-                else {
-                    cout << "Inventory full!\n" << endl;
-                }
-            }
-            else {
-                cout << "Not enough coins!\n" << endl;
-            }
-            break;
 
-        case 4: // Sell an item and get a refund
-            if (itemCount == 0) {
-                cout << "You have no items to sell!\n" << endl;
-            }
-            else {
-                displaySellMenu(inventory, itemCount, pet, coins);
-                while (true)
+                if (cin.fail() || user_input > 5 || user_input < 1)
                 {
-                    int user_input;
+                    invalid_input();
+                }
+                else {
+                    break;
+                }
+            }
 
-                    while (true) // Input Validation
+            displayShopMenu(pet, coins);
+
+            switch (user_input) {
+            case 1: // Water
+                if (coins >= 3) {
+                    if (itemCount < MAX_INVENTORY_SIZE) {
+                        coins -= 3;
+                        inventory[itemCount++] = "Water";
+                        cout << "You purchased Water! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << "\n " << endl;
+                    }
+                    else {
+                        cout << "Inventory full!" << endl;
+                    }
+                }
+                else {
+                    cout << "Not enough coins!" << endl;
+                }
+                break;
+
+            case 2: // Food
+                if (coins >= 5) {
+                    if (itemCount < MAX_INVENTORY_SIZE) {
+                        coins -= 5;
+                        inventory[itemCount++] = "Food";
+                        cout << "You purchased Food! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << "\n " << endl;
+                    }
+                    else {
+                        cout << "Inventory full!" << endl;
+                    }
+                }
+                else {
+                    cout << "Not enough coins!" << endl;
+                }
+                break;
+
+            case 3: // Toy
+                if (coins >= 10) {
+                    if (itemCount < MAX_INVENTORY_SIZE) {
+                        coins -= 10;
+                        inventory[itemCount++] = "Toy";
+                        cout << "You purchased a Toy! Remaining inventory space: " << MAX_INVENTORY_SIZE - itemCount << "\n " << endl;
+                    }
+                    else {
+                        cout << "Inventory full!\n" << endl;
+                    }
+                }
+                else {
+                    cout << "Not enough coins!\n" << endl;
+                }
+                break;
+
+            case 4: // Sell an item and get a refund
+                if (itemCount == 0) {
+                    cout << "You have no items to sell!\n" << endl;
+                }
+                else {
+                    displaySellMenu(inventory, itemCount, pet, coins);
+                    while (true)
                     {
-                        cout << "Enter Input: ";
-                        cin >> user_input;
+                        int user_input;
 
-                        if (cin.fail() || user_input > MAX_INVENTORY_SIZE + 1 || user_input < 1)
+                        while (true) // Input Validation
                         {
-                            invalid_input();
+                            cout << "Enter Input: ";
+                            cin >> user_input;
+
+                            if (cin.fail() || user_input > MAX_INVENTORY_SIZE + 1 || user_input < 1)
+                            {
+                                invalid_input();
+                            }
+                            else {
+                                break;
+                            }
+
                         }
-                        else {
+
+                        displaySellMenu(inventory, itemCount, pet, coins);
+
+                        if (user_input == MAX_INVENTORY_SIZE + 1)
+                        {
+                            displayShopMenu(pet, coins);
                             break;
                         }
 
-                    }
 
-                    displaySellMenu(inventory, itemCount, pet, coins);
+                        user_input--;
+                        if (user_input >= itemCount) {
+                            cout << "Invalid selection. No item in this slot." << endl;
+                            continue;
+                        }
+                        string item = inventory[user_input];
 
-                    if (user_input == MAX_INVENTORY_SIZE + 1)
-                    {
-                        break;
-                    }
+                        int refund = 0;
+                        if (item == "Water") {
+                            refund = 2;
+                        }
+                        else if (item == "Food") {
+                            refund = 3;
+                        }
+                        else if (item == "Toy") {
+                            refund = 5;
+                        }
+                        else {
+                            cout << "Invalid, No item at this position." << endl;
+                            continue;
+                        }
 
+                        for (int i = user_input; i < itemCount - 1; ++i) {
+                            inventory[i] = inventory[i + 1]; // Shift items to left
+                        }
 
-                    user_input--;
-                    if (user_input >= itemCount) {
-                        cout << "Invalid selection. No item in this slot." << endl;
-                        continue;
-                    }
-                    string item = inventory[user_input];
+                        itemCount--;
+                        if (itemCount < 0)
+                            itemCount = 0;
 
-                    int refund = 0;
-                    if (item == "Water") {
-                        refund = 2;
+                        displaySellMenu(inventory, itemCount, pet, coins);
+                        cout << "Sold " << item << ".\n" << endl;
                     }
-                    else if (item == "Food") {
-                        refund = 3;
-                    }
-                    else if (item == "Toy") {
-                        refund = 5;
-                    }
-                    else {
-                        cout << "Invalid, No item at this position." << endl;
-                        continue;
-                    }
-
-                    for (int i = user_input; i < itemCount - 1; ++i) {
-                        inventory[i] = inventory[i + 1]; // Shift items to left
-                    }
-
-                    itemCount--;
-                    if (itemCount < 0)
-                        itemCount = 0;
-
-                    displaySellMenu(inventory, itemCount, pet, coins);
-                    cout << "Sold " << item << ".\n" << endl;
                 }
+                break;
+
+            case 5:
+                displayShopMenu(pet, coins);
+                return;
+
+            default:
+                break;
             }
-            break;
-
-        case 5:
-            leave_shop = true;
-            cout << "Exiting the shop...\n" << endl; 
-            break;
-
-        default:
-            break;
-        }
-
-        if (leave_shop)
-        {
-            break;
         }
     }
-}
 
 // Item menu display
 void displayPetMenu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& pet)
-{
-    clearScreen();
-    pet.displayPet();
-    pet.displayStats();
+    {
+        clearScreen();
+        pet.displayPet();
+        pet.displayStats();
 
-    cout << "----------------[ Pet Menu ]-----------------" << endl;
+        cout << "----------------[ Pet Menu ]-----------------" << endl;
 
-    for (int i = 0; i < itemCount; ++i)
-        cout << i + 1 << ") " << inventory[i] << endl;
-    for (int i = itemCount; i < 5; ++i)
-        cout << i + 1 << ") " << "Empty Slot" << endl;
+        for (int i = 0; i < itemCount; ++i)
+            cout << i + 1 << ") " << inventory[i] << endl;
+        for (int i = itemCount; i < 5; ++i)
+            cout << i + 1 << ") " << "Empty Slot" << endl;
 
-    cout << "6) Exit Menu\n" << endl;
-}
+        cout << "6) Exit Menu\n" << endl;
+    }
 
 // Item menu
 void pet_menu(string inventory[MAX_INVENTORY_SIZE], int& itemCount, playerPet& pet) // This is where you feed, water, and play with the pet. It also serves as an inventory.
-{
-    displayPetMenu(inventory, itemCount, pet);
-
-    while (true)
     {
-        int user_input;
+        displayPetMenu(inventory, itemCount, pet);
 
-        while (true) // Input Validation
+        while (true)
         {
-            cout << "Enter Input: ";
-            cin >> user_input;
+            int user_input;
 
-            if (cin.fail() || user_input > MAX_INVENTORY_SIZE + 1 || user_input < 1)
+            while (true) // Input Validation
             {
-                invalid_input();
+                cout << "Enter Input: ";
+                cin >> user_input;
+
+                if (cin.fail() || user_input > MAX_INVENTORY_SIZE + 1 || user_input < 1)
+                {
+                    invalid_input();
+                }
+                else {
+                    break;
+                }
+
             }
-            else {
+
+            displayPetMenu(inventory, itemCount, pet);
+
+            if (user_input == MAX_INVENTORY_SIZE + 1)
+            {
                 break;
             }
 
-        }
 
-        displayPetMenu(inventory, itemCount, pet);
+            user_input--;
+            if (user_input >= itemCount) {
+                cout << "Invalid selection. No item in this slot." << endl;
+                continue;
+            }
+            string item = inventory[user_input];
 
-        if (user_input == MAX_INVENTORY_SIZE + 1)
-        {
-            break;
-        }
+            if (item == "Water") { // we should probably change these values around
+                pet.thirst += 20;
+                if (pet.thirst > 100)
+                    pet.thirst = 100;
+            }
+            else if (item == "Food") {
+                pet.hunger += 20;
+                if (pet.hunger > 100)
+                    pet.hunger = 100;
+            }
+            else if (item == "Toy") {
+                pet.happiness += 20;
+                if (pet.happiness > 100)
+                    pet.happiness = 100;
+            }
+            else {
+                cout << "Invalid, No item at this position." << endl;
+                continue;
+            }
 
+            for (int i = user_input; i < itemCount - 1; ++i) {
+                inventory[i] = inventory[i + 1]; // Shift items to left
+            }
 
-        user_input--;
-        if (user_input >= itemCount) {
-            cout << "Invalid selection. No item in this slot." << endl;
-            continue;
-        }
-        string item = inventory[user_input];
+            itemCount--;
+            if (itemCount < 0)
+                itemCount = 0;
 
-        if (item == "Water") { // we should probably change these values around
-            pet.thirst += 20;
-            if (pet.thirst > 100)
-                pet.thirst = 100;
+            displayPetMenu(inventory, itemCount, pet);
+            cout << "Used " << item << ".\n" << endl;
         }
-        else if (item == "Food") {
-            pet.hunger += 20;
-            if (pet.hunger > 100)
-                pet.hunger = 100;
-        }
-        else if (item == "Toy") {
-            pet.happiness += 20;
-            if (pet.happiness > 100)
-                pet.happiness = 100;
-        }
-        else {
-            cout << "Invalid, No item at this position." << endl;
-            continue;
-        }
-
-        for (int i = user_input; i < itemCount - 1; ++i) {
-            inventory[i] = inventory[i + 1]; // Shift items to left
-        }
-
-        itemCount--;
-        if (itemCount < 0)
-            itemCount = 0;
-
-        displayPetMenu(inventory, itemCount, pet);
-        cout << "Used " << item << ".\n" << endl;
     }
-}
 
 //Exploration minigame!
 class explorationGame
@@ -643,14 +629,14 @@ private:
         {
             cout << "You fall into an inconveniently placed pitfall trap."
                 << "\n After a while you manage to climb out, leaving you"
-                << "\ntired from whe whole ordeal.\n\n-20 energy";
+                << "\ntired from whe whole ordeal.\n\n-20 energy\n";
             energy -= 20;
             return 0;
         }
         if (var <= 3)
         {
             cout << "You are chased up a tree by wild animals! They eventually"
-                << "\nleave you alone, but you feel drained from the encounter.\n\n-15 energy";
+                << "\nleave you alone, but you feel drained from the encounter.\n\n-15 energy\n";
             energy -= 15;
             return 0;
         }
@@ -658,14 +644,14 @@ private:
         {
             cout << "You encounter someone during your travels who drags you"
                 << "\ninto a long-winded conversation about uninteresting things."
-                << "\nYou finally escape, but not unscathed.\n\n-10 energy";
+                << "\nYou finally escape, but not unscathed.\n\n-10 energy\n";
             energy -= 10;
             return 0;
         }
         if (var <= 10)
         {
             cout << "You follow a long path that leads nowhere. Disappointed,"
-                << "\nyou walk back up the path with nothing to show for it\n\n-5 energy";
+                << "\nyou walk back up the path with nothing to show for it\n\n-5 energy\n";
             energy -= 5;
             return 0;
         }
@@ -673,7 +659,7 @@ private:
         {
             cout << "You hear a sound in the distance. You go to investigate,"
                 << "\nand find someone stuck in a pit. You help them out."
-                << "\nAs thanks, they give you a coin.\n\n-5 energy\n+1 coin";
+                << "\nAs thanks, they give you a coin.\n\n-5 energy\n+1 coin\n";
             energy -= 5;
             numCoins++;
             return 0;
@@ -681,7 +667,7 @@ private:
         if (var <= 20)
         {
             cout << "You stop by a small stream and take a drink of water."
-                << "\nYou feel reinvigorated.\n\n+15 energy";
+                << "\nYou feel reinvigorated.\n\n+15 energy\n";
             energy += 15;
             return 0;
         }
@@ -689,7 +675,7 @@ private:
         {
             cout << "You stop by a small stream and take a drink of water."
                 << "\nYou see something glittering in the stream."
-                << "After closer inspection, it turns out to be a coin!\n\n+10 energy\n+1 coin";
+                << "After closer inspection, it turns out to be a coin!\n\n+10 energy\n+1 coin\n";
             energy += 10;
             numCoins++;
             return 0;
@@ -699,7 +685,7 @@ private:
             tempCoins = rand() % 7 + 3;
             cout << "You find a buried chest! inside is a bunch ofjunk, but"
                 << "\nafter some digging around, you collect a few coins.\n\n+"
-                << tempCoins << " coins";
+                << tempCoins << " coins\n";
             numCoins += tempCoins;
             return 0;
         }
@@ -708,7 +694,7 @@ private:
             tempCoins = rand() % 5 + 2;
             cout << "You feel air rush by and something brush up against you."
                 << "\nYou look around, but see nothing. Your pockets feel ligher\n\n-"
-                << tempCoins << " coins";
+                << tempCoins << " coins\n";
             numCoins -= tempCoins;
             if (numCoins < 0)
                 numCoins = 0;
@@ -720,7 +706,7 @@ private:
             cout << "A rich person sees you wandering and assumes you're homeless."
                 << "\nOut of pity, they give you a couple coins. You're not sure how"
                 << "\nto feel about this interaction, but at least you got coins.\n\n+"
-                << tempCoins << " coins";
+                << tempCoins << " coins\n";
             numCoins += tempCoins;
             return 0;
         }
@@ -728,7 +714,7 @@ private:
         {
             tempCoins = rand() % 4 + 3;
             cout << "You find some coins lying on the ground. Nice!"
-                << "\n\n+" << tempCoins << " coins";
+                << "\n\n+" << tempCoins << " coins\n";
             numCoins += tempCoins;
             return 0;
         }
@@ -737,7 +723,7 @@ private:
             cout << "A saudi prince offers you a million coins in exchange for"
                 << "\nan initial investment. Knowing they must be telling the"
                 << "\ntruth, you give them some of your coins. You wonder when"
-                << "\nthey'll contact you.\n\n-10 coins";
+                << "\nthey'll contact you.\n\n-10 coins\n";
             numCoins -= 10;
             if (numCoins < 0)
                 numCoins = 0;
@@ -747,34 +733,34 @@ private:
         {
             cout << "You're confronted by a bandit looking to steal your coins."
                 << "\nLuckily, they trip on a rock and fall over, unconscious."
-                << "\nYou hurry away.";
+                << "\nYou hurry away.\n";
             return 0;
         }
         if (var <= 50)
         {
             cout << "You find some berry bushes, and decide to eat some berries."
-                << "\nThey're very tasty, and you feel invigorated!\n\n+10 energy";
+                << "\nThey're very tasty, and you feel invigorated!\n\n+10 energy\n";
             energy += 10;
             return 0;
         }
         if (var <= 60)
         {
             cout << "After reaching the crest of a hill, you stop to admire"
-                << "\nthe view. You're filled with determination!\n\n+10 energy";
+                << "\nthe view. You're filled with determination!\n\n+10 energy\n";
             energy += 10;
             return 0;
         }
         if (var <= 61)
         {
             cout << "Despite the sunny weather, you're struck by lightning."
-                << "\nNaturally, this energizes you!\n\n+50 energy";
+                << "\nNaturally, this energizes you!\n\n+50 energy\n";
             energy += 50;
             return 0;
         }
         if (var <= 65)
         {
             cout << "You find a discarded piece of candy. Surely it's edible..."
-                << "\n\n+10 energy";
+                << "\n\n+10 energy\n";
             energy += 10;
             return 0;
         }
@@ -782,35 +768,35 @@ private:
         {
             cout << "You find a discarded piece of candy. Surely it's edible..."
                 << "\nYou bite into it, but it turns out to be a coin. Ow."
-                << "\n\n-1 energy\n+1 coin";
+                << "\n\n-1 energy\n+1 coin\n";
             energy--;
             numCoins++;
             return 0;
         }
         if (var <= 67)
         {
-            cout << "You take a sip from your trusty vault 13 canteen.\n\n+15 energy";
+            cout << "You take a sip from your trusty vault 13 canteen.\n\n+15 energy\n";
             energy += 15;
             return 0;
         }
         if (var <= 68)
         {
             cout << "Someone offers you a cake. Naturally, you accept."
-                << "\nTurns out it wasn't a lie.\n\n+30 energy";
+                << "\nTurns out it wasn't a lie.\n\n+30 energy\n";
             energy += 30;
             return 0;
         }
         if (var <= 75)
         {
             cout << "You decide to listen to some music, and your favorite"
-                << "\nsong comes on. It makes the journey easier.\n\n+15 energy";
+                << "\nsong comes on. It makes the journey easier.\n\n+15 energy\n";
             energy += 15;
             return 0;
         }
         if (var <= 80)
         {
             cout << "You find a wishing well, and toss a coin in. You feel hopeful."
-                << "\n\n+ 10 energy\n-1 coin";
+                << "\n\n+ 10 energy\n-1 coin\n";
             energy += 10;
             numCoins--;
             if (numCoins < 0)
@@ -821,14 +807,14 @@ private:
         {
             cout << "You encounter a very short man on the road with a pack-laden pony"
                 << "\nat his side. He quite adamantly offers you coins, as his pony is"
-                << "\ntoo tired to carry them. You graciously accept.\n\n+10 coins";
+                << "\ntoo tired to carry them. You graciously accept.\n\n+10 coins\n";
             numCoins += 10;
             return 0;
         }
         if (var <= 90)
         {
             cout << "A goose walks across your path and lays a golden egg."
-                << "You're sure you could fetch a good price for it.\n\n+10 coins";
+                << "You're sure you could fetch a good price for it.\n\n+10 coins\n";
             numCoins += 10;
             return 0;
         }
@@ -838,7 +824,7 @@ private:
             cout << "You approach a group of people watching a magician perform"
                 << "\ntricks, and join the crowd. For the final trick, the"
                 << "\nmagician makes coins rain from the sky. That was fun!"
-                << "\n\n+15 energy\n+" << tempCoins << " coins";
+                << "\n\n+15 energy\n+" << tempCoins << " coins\n";
             energy += 15;
             numCoins += tempCoins;
             return 0;
@@ -847,13 +833,13 @@ private:
         {
             cout << "A man offers you an energy drink, saying it'll make you run"
                 << "\nfaster and jump higher. Despite your sudden and inexplicable"
-                << "\nurge to throw it on the ground, you drink it.\n\n+15 energy";
+                << "\nurge to throw it on the ground, you drink it.\n\n+15 energy\n";
             energy += 15;
             return 0;
         }
         if (var <= 100)
         {
-            cout << "A little something for playing :)\n\n+50 energy\n+20 coins";
+            cout << "A little something for playing :)\n\n+50 energy\n+20 coins\n";
             energy += 50;
             numCoins += 20;
             return 0;
@@ -893,6 +879,7 @@ private:
         }
         cout << "\\-------------------------------/\n" << endl;
         cout << "Energy: " << energy << "     Coins: " << numCoins << "\n" << endl;
+        cout << "W - up | A - down | S - Left | D - right | ! - exit\n" << endl;
     }
 
     int getInput()
@@ -1042,7 +1029,7 @@ int guessingGame() {
 
     int numGuess;
     int attempts = 0;
-    int maxAttempts = 5; // Max attempts set to 5
+    int maxAttempts = 5;
 
     cout << "Welcome to the Number Guessing Game!" << endl;
     cout << "Try to guess the number between 1 and 100. You have " << maxAttempts << " attempts." << endl;
@@ -1055,8 +1042,7 @@ int guessingGame() {
         // Input validation loop
         while (true) {
             cin >> numGuess;
-
-            // Check if the input is a valid integer
+            // Is integer from 1-100?
             if (cin.fail() || numGuess < 1 || numGuess > 100) {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -1069,12 +1055,12 @@ int guessingGame() {
 
         clearScreen();
 
-        // Count the number of attempts
+        // You have used an attempt. You'll never get it back
         attempts++;
 
-        // Check if the guess is correct
+        // Compare guess to actual number
         if (numGuess == randomNum) {
-            cout << "Congratulations! You guessed the right number: " << randomNum << "\n";
+            cout << "Congratulations! You guessed the right number: " << randomNum << "\n"; // Yay
             cout << "It took you " << attempts << " attempts.\n" << endl;
             break;
         }
@@ -1101,35 +1087,27 @@ void minigame_menu(explorationGame& explore, int& coins, playerPet& pet, time_t&
         cout << "-------------[ Mini Games ]---------------\n";
         cout << "1) Exploration!\n";
         cout << "2) Number Guessing\n";
-        cout << "3) Unavailable\n";
         cout << "4) Exit\n" << endl;
 
         int choice;
         cin >> choice;
-        if (cin.fail() || choice < 1 || choice > 4)
-            invalid_input("Choose from 1-4");
+        if (cin.fail() || choice < 1 || choice > 3)
+            invalid_input("Choose from 1-3");
 
         switch (choice) {
-        case 1: {
+        case 1:
             explore.runGame();
             coins += explore.numCoins;
             pet.statDecay(decayTime);
             break;
-        }
-        case 2: {
+
+        case 2: 
             coins += (30 - 5 * guessingGame());
             break;
-        }
-        case 3: {
-            clearScreen();
-            pet.displayPet();
-            pet.displayStats();
-            break;
-        }
-        case 4: {
+
+        case 3: 
             return;
             break;
-        }
         }
     }
 }
@@ -1142,7 +1120,6 @@ int main()
     playerPet pet; // Initialize pet
     explorationGame explore; // Initialize exploration game
     string inventory[MAX_INVENTORY_SIZE];
-    int coins = 20; // Default Money
     int itemCount = 0;
 
 
@@ -1155,7 +1132,7 @@ int main()
         for (int i = 0; i < itemCount; ++i) {
             inFile >> inventory[i]; // Load inventory items
         }
-        inFile >> coins;  // Load coins
+        inFile >> pet.coins;  // Load coins
         inFile.close();
     }
     else {
@@ -1224,7 +1201,7 @@ int main()
         switch (user_input) // Send User to Proper Menu
         {
         case 1:
-            shop_menu(coins, inventory, itemCount, pet);
+            shop_menu(pet.coins, inventory, itemCount, pet);
             break;
         case 2:
             clearScreen();
@@ -1236,7 +1213,7 @@ int main()
             clearScreen();
             pet.displayPet();
             pet.displayStats();
-            minigame_menu(explore, coins, pet, decayTime);
+            minigame_menu(explore, pet.coins, pet, decayTime);
             break;
         case 4:
             exit_game = true;
@@ -1248,77 +1225,81 @@ int main()
         default:
             break;
         }
-        
-       // Handling save when exiting the game
-    if (exit_game) {
-        ofstream outFile("pet_data.txt");
 
-        if (!outFile) {
-            cout << "Error opening save file! Please check file permissions or disk space.\n" << endl;
-            break; // Exit if there's an issue with saving
+        // Handling save when exiting the game
+        if (exit_game) {
+            ofstream outFile("pet_data.txt");
+
+            if (!outFile) {
+                cout << "Error opening save file! Please check file permissions or disk space.\n" << endl;
+                break; // Exit if there's an issue with saving
+            }
+
+            // Save pet data
+            outFile << pet.name << endl;
+            outFile << pet.hunger << " " << pet.thirst << " " << pet.happiness << endl; // Save stats
+
+            // Save inventory data
+            outFile << itemCount << endl; // Inventory count
+            for (int i = 0; i < itemCount; ++i) {
+                outFile << inventory[i] << endl; // Save each item in the inventory
+            }
+
+            // Save coins
+            outFile << pet.coins << endl;
+
+            outFile.close(); // Close file after writing
+
+            cout << "\nPet data saved successfully.\n" << endl;
+            cout << "---Quitting Game---\n" << endl;
+            break; // Exit the loop and terminate the program
         }
 
-        // Save pet data
-        outFile << pet.name << endl;
-        outFile << pet.hunger << " " << pet.thirst << " " << pet.happiness << endl; // Save stats
+        // Handling save file deletion
+        if (delete_game) {
+            cout << "\nAre you sure you want to delete your save file? This action cannot be undone (y/n): ";
+            char delete_choice;
+            cin >> delete_choice;
+            if (delete_choice == 'y' || delete_choice == 'Y') {
+                // Attempt to remove the file
+                if (remove("pet_data.txt") == 0) {
+                    cout << "\nSave file deleted successfully.\n" << endl;
+                    // Revert values back to defaults
+                    pet.name = "";
+                    pet.hunger = 100;
+                    pet.thirst = 100;
+                    pet.happiness = 100;
+                    itemCount = 0;
+                    pet.coins = 20; // Reset to default
 
-        // Save inventory data
-        outFile << itemCount << endl; // Inventory count
-        for (int i = 0; i < itemCount; ++i) {
-            outFile << inventory[i] << endl; // Save each item in the inventory
-        }
-
-        // Save coins
-        outFile << coins << endl;
-
-        outFile.close(); // Close file after writing
-
-        cout << "\nPet data saved successfully.\n" << endl;
-        cout << "---Quitting Game---\n" << endl;
-        break; // Exit the loop and terminate the program
-    }
-
-    // Handling save file deletion
-    if (delete_game) {
-        cout << "\nAre you sure you want to delete your save file? This action cannot be undone (y/n): ";
-        char delete_choice;
-        cin >> delete_choice;
-        if (delete_choice == 'y' || delete_choice == 'Y') {
-            // Attempt to remove the file
-            if (remove("pet_data.txt") == 0) {
-                cout << "\nSave file deleted successfully.\n" << endl;
-                // Revert values back to defaults
-                pet.name = "";
-                pet.hunger = 100;
-                pet.thirst = 100;
-                pet.happiness = 100;
-                itemCount = 0;
-                coins = 20; // Reset to default
-
-                // Quit?
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                cout << "Would you like to quit? (y/n): ";
-                cin >> delete_choice;
-                if (delete_choice == 'y' || delete_choice == 'Y') {
-                    cout << "---Quitting Game---\n" << endl;
-                    break;
-                } else {
-                    while (true) {
-                        cout << "Enter a new pet name: ";
-                        cin >> pet.name;
-                        if (cin.fail()) {
-                            invalid_input("Invalid input, try again.");
-                        } else {
-                            break;
+                    // Quit?
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << "Would you like to quit? (y/n): ";
+                    cin >> delete_choice;
+                    if (delete_choice == 'y' || delete_choice == 'Y') {
+                        cout << "---Quitting Game---\n" << endl;
+                        break;
+                    }
+                    else {
+                        while (true) {
+                            cout << "Enter a new pet name: ";
+                            cin >> pet.name;
+                            if (cin.fail()) {
+                                invalid_input("Invalid input, try again.");
+                            }
+                            else {
+                                break;
+                            }
                         }
                     }
                 }
-            } else {
-                cout << "\nError: Could not delete save file. Please check file permissions.\n" << endl;
+                else {
+                    cout << "\nError: Could not delete save file. Please check file permissions.\n" << endl;
+                }
             }
-        } else {
-            cout << "\nSave file deletion canceled.\n" << endl;
+            else {
+                cout << "\nSave file deletion canceled.\n" << endl;
             }
-         }
+        }
     }
 }

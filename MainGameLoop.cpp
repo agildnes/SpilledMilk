@@ -21,6 +21,7 @@ Saturday November 30th - Bug fixes, rearranging, organization. - Thomas
 Saturday November 30th - Fixed inventory and coin saving system (wasn't loading before) - Charlene
 Saturday November 30th - Menu reworks, organization, bug fixes. - Thomas
 Saturday November 30th - Minigame menu now clears properly - Thomas
+Saturday November 30th - Implemented Charlene's guessing game - Thomas
 */
 
 #include <iostream>
@@ -983,6 +984,69 @@ private:
 };
 // --- END OF EXPLORATION MINIGAME ---
 
+int guessingGame() {
+
+    clearScreen();
+
+    srand(time(0));
+
+    // Generate a random number between 1 and 100
+    int randomNum = rand() % 100 + 1;
+
+    int numGuess;
+    int attempts = 0;
+    int maxAttempts = 5; // Max attempts set to 5
+
+    cout << "Welcome to the Number Guessing Game!" << endl;
+    cout << "Try to guess the number between 1 and 100. You have " << maxAttempts << " attempts." << endl;
+
+    // Game loop
+    while (attempts < maxAttempts) {
+        cout << "\nAttempt #" << (attempts + 1) << "/" << maxAttempts << ": ";
+        cout << "Enter your guess (between 1 and 100): ";
+
+        // Input validation loop
+        while (true) {
+            cin >> numGuess;
+
+            // Check if the input is a valid integer
+            if (cin.fail() || numGuess < 1 || numGuess > 100) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid input. Please enter an integer between 1 and 100: ";
+            }
+            else {
+                break;
+            }
+        }
+
+        clearScreen();
+
+        // Count the number of attempts
+        attempts++;
+
+        // Check if the guess is correct
+        if (numGuess == randomNum) {
+            cout << "Congratulations! You guessed the right number: " << randomNum << "\n";
+            cout << "It took you " << attempts << " attempts.\n" << endl;
+            break;
+        }
+        else if (numGuess < randomNum) {
+            cout << numGuess << " is too low!" << endl;
+        }
+        else {
+            cout << numGuess << " is too high!" << endl;
+        }
+
+        if (attempts == maxAttempts) {
+            cout << "\nSorry, you've run out of attempts! The correct number was: " << randomNum << "\n" << endl;
+            break;
+        }
+    }
+
+    return ( 1 + attempts);
+}
+
 void minigame_menu(explorationGame& explore, int& coins, playerPet& pet, time_t& decayTime)
 {
     bool exiting = 0;
@@ -1007,9 +1071,7 @@ void minigame_menu(explorationGame& explore, int& coins, playerPet& pet, time_t&
             break;
         }
         case 2: {
-            clearScreen();
-            pet.displayPet();
-            pet.displayStats();
+            coins += (30 - 5 * guessingGame());
             break;
         }
         case 3: {

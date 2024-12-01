@@ -424,7 +424,11 @@ public:
             {
                 cout << gameField[ix][iy] << ' ';
             }
-            cout << '\n';
+            cout << '\n' << "Press any key to continue" << endl;
+            cin.ignore(numeric_limits<streamsize>::max() , '\n');
+            getchar();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            clearScreen();
         }
     }
 
@@ -434,7 +438,11 @@ public:
         int tempvar[27] = { 1, 3, 5, 10, 15, 20, 25, 30, 35, 36, 40, 41, 42, 50, 60, 61, 65, 66, 67, 68, 75, 80, 85, 90, 95, 99, 100 };
         for (int i : tempvar)
             encounter(i);
-        cout << "\n";
+        cout << '\n' << "Press any key to continue" << endl;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            getchar();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            clearScreen();
     }
 
     // Runs the game

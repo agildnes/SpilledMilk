@@ -1170,7 +1170,7 @@ int main()
             cout << "Enter Input: ";
             cin >> user_input;
 
-            if (cin.fail() || user_input > 5 || user_input < 1)
+            if (cin.fail() || user_input > 6 || user_input < 1)
             {
                 invalid_input();
             }
@@ -1221,18 +1221,17 @@ int main()
                         itemCount = 0;
                         coins = 20; // Reset to default
                     } else {
-                        cout << "Error: Could not delete save file. Please check file permissions." << endl;
+                        cout << "Error: Could not delete save file. Please check file permissions.\n" << endl;
                     }
                 } else {
-                    cout << "Save file deletion canceled." << endl;
+                    cout << "Save file deletion canceled.\n" << endl;
             }
-            clearScreen(); 
             break; 
         }
         if (exit_game) {
             ofstream outFile("pet_data.txt");
             if (!outFile) {
-                cout << "Error opening save file! Please check file permissions or disk space. " << endl;
+                cout << "Error opening save file! Please check file permissions or disk space.\n" << endl;
                 break;
             }
 
@@ -1245,9 +1244,8 @@ int main()
             }
             outFile.close(); // Close after writing
 
-            cout << "Pet data saved successfully." << endl;
-            cout << "---Quitting Game---" << endl;
-            clearScreen(); 
+            cout << "Pet data saved successfully.\n" << endl;
+            cout << "---Quitting Game---\n" << endl;
             break;
         }
 

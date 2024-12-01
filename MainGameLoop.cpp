@@ -18,6 +18,7 @@ Friday November 29th - Fixed game, resolved some errors
 Friday November 29th - Added functioning pet menu, using items on pet and whatnot - Axel
 Friday November 29th - Fixed missing semicolon in my code (typical, classic) - Charlene
 Saturday November 30th - Bug fixes, rearranging, organization.
+Saturday November 30th - Fixed inventory and coin saving system (wasn't loading before) - Charlene
 */
 
 #include <iostream>
@@ -1018,14 +1019,17 @@ int main()
     explorationGame explore; // Initialize exploration game
 
     // Try to load data from the file
-    ifstream inFile("pet_data.txt");
+     ifstream inFile("pet_data.txt");
     if (inFile) {
         getline(inFile, pet.name);
-        inFile >> pet.hunger >> pet.thirst >> pet.happiness; // Takes these values if found
+        inFile >> pet.hunger >> pet.thirst >> pet.happiness; // Load pet stats
+        inFile >> itemCount; // Load inventory count
+        for (int i = 0; i < itemCount; ++i) {
+            inFile >> inventory[i]; // Load inventory items
+        }
+        inFile >> coins;  // Load coins
         inFile.close();
-        cout << "Pet data loaded: " << pet.name << endl;
-    }
-    else {
+    } else {
         cout << "No pet data found. Create a new pet? (y/n): ";
         char choice; // Local variable for saving
         while (1)

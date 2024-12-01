@@ -20,7 +20,7 @@ Friday November 29th - Fixed missing semicolon in my code (typical, classic) - C
 Saturday November 30th - Bug fixes, rearranging, organization. - Thomas
 Saturday November 30th - Fixed inventory and coin saving system (wasn't loading before) - Charlene
 Saturday November 30th - Menu reworks, organization, bug fixes. - Thomas
-Saturday November 30th - Minigame menu now clears properly
+Saturday November 30th - Minigame menu now clears properly - Thomas
 */
 
 #include <iostream>

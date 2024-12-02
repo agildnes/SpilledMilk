@@ -29,7 +29,7 @@ Saturday December 1st - Fixed save menu, had to rework Shop Menu (had bugs and d
 Sunday December 1st - Fixed sell -> shop display bug, reimplemented tweaks from before since not broken, changed decay calculation, added some controls and formatting to explorationGame, coins now child of playerPet class - Thomas
 Sunday December 1st - Fixed WASD text, minor spelling fixes in explorationGame - Charlene
 Sunday December 1st - Fixed delete data bug and random text i added -_- smh - Charlene
-
+Sunday December 1st - Fixed shop menu bug (selling items didn't add refund back to coins), changed number guessing game (nerfed to 1-10, and players earn coins) - Charlene
 */
 
 #include <iostream>
@@ -278,6 +278,7 @@ void shop_menu(int& coins, string inventory[], int& itemCount, playerPet& pet) /
                             itemCount = 0;
 
                         displaySellMenu(inventory, itemCount, pet, coins);
+                        coins += refund;
                         cout << "Sold " << item << ".\n" << endl;
                     }
                 }
@@ -1021,35 +1022,35 @@ private:
 };
 // --- END OF EXPLORATION MINIGAME ---
 
-int guessingGame() {
+void guessingGame(int &coins) {
 
     clearScreen();
 
     srand(time(0));
 
     // Generate a random number between 1 and 100
-    int randomNum = rand() % 100 + 1;
+    int randomNum = rand() % 10 + 1;
 
     int numGuess;
     int attempts = 0;
     int maxAttempts = 5;
 
     cout << "Welcome to the Number Guessing Game!" << endl;
-    cout << "Try to guess the number between 1 and 100. You have " << maxAttempts << " attempts." << endl;
+    cout << "Try to guess the number between 1 and 10. You have " << maxAttempts << " attempts." << endl;
 
     // Game loop
     while (attempts < maxAttempts) {
         cout << "\nAttempt #" << (attempts + 1) << "/" << maxAttempts << ": ";
-        cout << "Enter your guess (between 1 and 100): ";
+        cout << "Enter your guess (between 1 and 10): ";
 
         // Input validation loop
         while (true) {
             cin >> numGuess;
-            // Is integer from 1-100?
-            if (cin.fail() || numGuess < 1 || numGuess > 100) {
+            // Is integer from 1-10?
+            if (cin.fail() || numGuess < 1 || numGuess > 10) {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                cout << "Invalid input. Please enter an integer between 1 and 100: ";
+                cout << "Invalid input. Please enter an integer between 1 and 10: ";
             }
             else {
                 break;
@@ -1065,7 +1066,10 @@ int guessingGame() {
         if (numGuess == randomNum) {
             cout << "Congratulations! You guessed the right number: " << randomNum << "\n"; // Yay
             cout << "It took you " << attempts << " attempts.\n" << endl;
-            break;
+            int coinsAwarded = max(1, 25 - 5 * attempts);  // Fewer attempts = more coins
+            cout << "You earned " << coinsAwarded << " coins!\n";
+            coins += coinsAwarded;  
+            break; 
         }
         else if (numGuess < randomNum) {
             cout << numGuess << " is too low!" << endl;
@@ -1079,8 +1083,6 @@ int guessingGame() {
             break;
         }
     }
-
-    return (1 + attempts);
 }
 
 void minigame_menu(explorationGame& explore, int& coins, playerPet& pet, time_t& decayTime)
@@ -1110,7 +1112,7 @@ void minigame_menu(explorationGame& explore, int& coins, playerPet& pet, time_t&
             break;
 
         case 2: 
-            coins += (30 - 5 * guessingGame());
+            guessingGame(coins);
             break;
 
         case 3: 
